@@ -50,7 +50,7 @@ Pela estrutura do projeto, o backend utiliza:
 - **TypeScript**
 - **NestJS**
 - **Vitest** para testes
-- **ESLint/Oxlint/Prettier** para qualidade e padronização de código
+- **ESLint/Prettier** para qualidade e padronização de código
 
 ### Frontend — `smartmind-web`
 
@@ -63,68 +63,6 @@ Pela presença do `vite.config.ts`, o frontend utiliza:
 - **NPM**
 
 > O framework de UI utilizado no frontend (por exemplo, React ou outro) pode ser especificado aqui conforme a implementação do projeto.
-
----
-
-## 🧠 Sobre o projeto
-
-O **SmartMind** é uma aplicação web estruturada com separação entre frontend e backend.
-
-A aplicação possui a seguinte divisão de responsabilidades:
-
-```text
-smartmind-web  →  Interface do usuário
-                     ↓
-                  HTTP/API
-                     ↓
-smartmind-api  →  Regras de negócio e acesso aos dados
-```
-
-Essa separação permite desenvolver e testar cada parte da aplicação de forma independente.
-
----
-
-## 🏗️ Arquitetura
-
-### Backend
-
-O projeto `smartmind-api` utiliza a estrutura padrão de uma aplicação NestJS, centralizando a aplicação dentro da pasta `src/`.
-
-Uma organização recomendada para evolução do projeto é:
-
-```text
-src/
-├── modules/
-│   ├── ...
-│
-├── common/
-│   ├── ...
-│
-├── config/
-│   └── ...
-│
-├── app.module.ts
-└── main.ts
-```
-
-A estrutura pode ser adaptada conforme os módulos e regras de negócio do SmartMind.
-
-### Frontend
-
-A aplicação `smartmind-web` mantém a interface dentro de `src/` e os arquivos públicos em `public/`.
-
-Uma organização possível é:
-
-```text
-src/
-├── components/
-├── pages/
-├── services/
-├── hooks/
-├── models/
-├── assets/
-└── ...
-```
 
 ---
 
@@ -232,18 +170,6 @@ smartmind-api
 Banco de dados / serviços externos
 ```
 
-Uma boa prática é centralizar as chamadas HTTP em serviços próprios:
-
-```text
-src/
-└── services/
-    ├── api.ts
-    ├── auth.service.ts
-    └── ...
-```
-
----
-
 ## 🔐 Configuração de ambiente
 
 Informações específicas do ambiente devem ser armazenadas em variáveis de ambiente, evitando valores sensíveis diretamente no código.
@@ -278,32 +204,6 @@ A estratégia recomendada é manter testes para:
 - controllers/endpoints;
 - cenários de erro;
 - integração entre componentes importantes.
-
----
-
-## 📌 Convenções recomendadas
-
-Para manter o projeto organizado:
-
-### Código
-
-- Utilize nomes descritivos para variáveis, classes e funções.
-- Separe responsabilidades.
-- Evite lógica de negócio diretamente nos controllers.
-- Centralize chamadas à API no frontend.
-- Evite duplicação de código.
-
-### Git
-
-Utilize commits objetivos:
-
-```text
-feat: adiciona autenticação
-fix: corrige validação de usuário
-refactor: reorganiza módulo de usuários
-test: adiciona testes para autenticação
-docs: atualiza documentação
-```
 
 ---
 
@@ -359,16 +259,3 @@ SmartMind
 └── Frontend
     └── smartmind-web
 ```
-
----
-
-## 📄 Licença
-
-Defina aqui a licença utilizada pelo projeto.
-
-Exemplo:
-
-```text
-MIT License
-```
-
