@@ -1,0 +1,337 @@
+# ============================================================
+# SMARTMIND — CRIAÇÃO DOS PROJETOS
+# ============================================================
+
+
+# ============================================================
+# 1. FRONT-END — REACT + VITE
+# ============================================================
+
+# Cria um novo projeto utilizando o Vite
+npm create vite@latest
+
+# Nome do projeto
+Project name:
+│ smartmind-web
+
+# Framework
+Select a framework:
+│ React
+
+# Linguagem
+Select a variant:
+│ TypeScript
+
+# Linter
+Which linter to use?
+│ ESLint
+
+# ESLint
+# Ferramenta de análise estática para JavaScript/TypeScript.
+#
+# Durante o desenvolvimento, verifica o código e aponta:
+# - possíveis erros;
+# - problemas de código;
+# - padrões que não estão sendo seguidos.
+
+# Instalar as dependências e iniciar o projeto
+Install with npm and start now?
+│ Yes
+
+
+
+# ============================================================
+# 2. BACK-END — NESTJS
+# ============================================================
+
+# Cria um novo projeto NestJS
+npx @nestjs/cli new smartmind-api
+
+# Gerenciador de pacotes
+Which package manager would you ❤️ to use?
+│ npm
+
+# Observabilidade automática
+Would you like to enable auto-instrumented observability
+(@nestjs/observe)?
+│ No
+
+# Sistema de módulos
+Which module system would you like to use?
+│ ESM (ES Modules)
+
+# Testes
+│ Vitest
+
+
+
+# ============================================================
+# 3. ENTRAR NA PASTA DO BACK-END
+# ============================================================
+
+cd smartmind-api
+
+
+
+# ============================================================
+# 4. INSTALAR O NESTJS CLI LOCALMENTE
+# ============================================================
+
+# Instala o NestJS CLI somente como dependência
+# de desenvolvimento deste projeto.
+
+npm install --save-dev @nestjs/cli
+
+
+
+# ============================================================
+# 5. INSTALAR DEPENDÊNCIAS
+# ============================================================
+
+# ------------------------------------------------------------
+# Swagger
+# ------------------------------------------------------------
+
+# Documentação automática da API.
+
+npm install @nestjs/swagger
+
+
+# ------------------------------------------------------------
+# PostgreSQL
+# ------------------------------------------------------------
+
+# Driver para conexão com PostgreSQL.
+
+npm install pg
+
+# Tipagens TypeScript para o PostgreSQL.
+
+npm install -D @types/pg
+
+
+# ------------------------------------------------------------
+# Configuração
+# ------------------------------------------------------------
+
+# Permite trabalhar com variáveis de ambiente
+# e configurações da aplicação.
+
+npm install @nestjs/config
+
+
+# ------------------------------------------------------------
+# Validação
+# ------------------------------------------------------------
+
+# Permite validar DTOs utilizando decorators.
+
+npm install class-validator
+
+npm install class-transformer
+
+
+
+# ============================================================
+# 6. CRIAR O MÓDULO DE USUÁRIO
+# ============================================================
+
+# O módulo agrupa tudo relacionado ao domínio de Usuário.
+
+npx nest g module modules/usuario
+
+
+
+# ============================================================
+# 7. CRIAR O CONTROLLER
+# ============================================================
+
+# Responsável por receber as requisições HTTP.
+#
+# --flat:
+# Não cria uma pasta adicional para o controller.
+#
+# --no-spec:
+# Não cria o arquivo de teste.
+
+npx nest g controller modules/usuario/api/usuario --flat --no-spec
+
+
+
+# ============================================================
+# 8. CRIAR A ENTITY
+# ============================================================
+
+# Representa o objeto principal do domínio.
+#
+# A Entity deve ficar dentro da camada Domain.
+
+npx nest g class modules/usuario/domain/entities/usuario.entity --no-spec
+
+
+
+# ============================================================
+# 9. CRIAR A INTERFACE DO REPOSITÓRIO
+# ============================================================
+
+# Define o contrato que o Repository deverá seguir.
+#
+# A interface pertence ao Domain porque o Domain define
+# aquilo que precisa ser feito, mas não sabe COMO será feito.
+
+npx nest g interface modules/usuario/domain/interfaces/repositories/usuario.repository.interface
+
+
+
+# ============================================================
+# 10. CRIAR O REPOSITÓRIO
+# ============================================================
+
+# Responsável pela implementação do acesso ao banco de dados.
+#
+# Esta implementação pertence à Infrastructure.
+
+npx nest g provider modules/usuario/infrastructure/repositories/usuario.repository --no-spec
+
+
+
+# ============================================================
+# 11. CRIAR O USE CASE — CRIAR USUÁRIO
+# ============================================================
+
+# Responsável pela operação da aplicação relacionada
+# à criação de um usuário.
+
+npx nest g provider modules/usuario/application/use-cases/criar-usuario --no-spec
+
+
+
+# ============================================================
+# 12. RESPONSABILIDADE DE CADA CAMADA
+# ============================================================
+
+
+# ------------------------------------------------------------
+# API
+# ------------------------------------------------------------
+
+# Responsável pela comunicação HTTP.
+#
+# Exemplos:
+# - Receber requisição;
+# - Validar entrada básica;
+# - Chamar Use Case;
+# - Retornar resposta HTTP.
+
+# NÃO deve conter regra de negócio.
+
+
+# ------------------------------------------------------------
+# APPLICATION
+# ------------------------------------------------------------
+
+# Contém os casos de uso da aplicação.
+#
+# Exemplos:
+# - Criar usuário;
+# - Buscar usuário;
+# - Atualizar usuário;
+# - Excluir usuário.
+#
+# Coordena o fluxo da operação.
+
+
+# ------------------------------------------------------------
+# DOMAIN
+# ------------------------------------------------------------
+
+# Contém o núcleo do negócio.
+#
+# Exemplos:
+# - Entities;
+# - Interfaces;
+# - Regras de domínio;
+# - Objetos relacionados ao negócio.
+#
+# NÃO conhece banco de dados,
+# PostgreSQL, SQL ou Infrastructure.
+
+
+# ------------------------------------------------------------
+# INFRASTRUCTURE
+# ------------------------------------------------------------
+
+# Contém implementações relacionadas a recursos externos.
+#
+# Exemplos:
+# - Repositories;
+# - PostgreSQL;
+# - SQL;
+# - Conexões com banco;
+# - APIs externas;
+# - Serviços externos.
+#
+# Infrastructure implementa os contratos definidos pelo Domain.
+
+
+
+# ============================================================
+# 13. FLUXO DE DEPENDÊNCIA
+# ============================================================
+
+# A regra principal:
+#
+# Domain NÃO deve depender de Infrastructure.
+#
+# Infrastructure depende dos contratos definidos pelo Domain.
+
+API
+ ↓
+APPLICATION
+ ↓
+DOMAIN
+ ↑
+INFRASTRUCTURE
+
+
+# Em outras palavras:
+#
+# API chama Application.
+# Application utiliza contratos do Domain.
+# Infrastructure implementa esses contratos.
+
+
+
+# ============================================================
+# 14. ACESSO AO BANCO DE DADOS
+# ============================================================
+
+# A Infrastructure será responsável pelo acesso ao banco.
+
+# A ideia é utilizar SQL manualmente,
+# sem ORM como Prisma.
+
+#
+# Fluxo:
+#
+# Infrastructure
+#       ↓
+# Repository
+#       ↓
+# SQL
+#       ↓
+# PostgreSQL
+#
+
+
+# Exemplo:
+#
+# UsuarioRepository
+#       ↓
+# SELECT / INSERT / UPDATE / DELETE
+#       ↓
+# PostgreSQL
+
+# ============================================================
+# FIM — ESTRUTURA INICIAL DO SMARTMIND
+# ============================================================

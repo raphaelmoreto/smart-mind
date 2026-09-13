@@ -1,0 +1,308 @@
+<!--TEMA-->
+
+Painel inteligente que aprende a rotina dos moradores e sugere ajustes de conforto/energia.
+
+	--------------------||--------------------
+
+<!--BLOCOS-->
+                    SMART HOME
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
+     FRONT-END       BACK-END        BANCO
+      React          NestJS         PostgreSQL
+        │               │               │
+        └───────────────┼───────────────┘
+                        │
+                       IA
+                  ┌─────┴─────┐
+                  │           │
+              Machine      Chatbot
+              Learning
+
+	--------------------||--------------------
+
+<!--DOCUMENTAÇÃO/ANÁLISE-->
+
+1. Definir problema
+2. Definir usuários
+3. Levantar requisitos
+4. Criar protótipo
+5. Desenvolver Front-end
+6. Desenvolver Back-end
+7. Criar Banco
+8. Implementar ML
+9. Implementar Chatbot
+10. Documentar/Testar
+
+	--------------------||--------------------
+
+<!--PLANEJAMENTO DE REQUISITOS (Antes de programar, explique exatamente o que seu sistema vai fazer e para quem.)-->
+
+
+• Definição do Problema
+
+	Atualmente, sistemas de automação residencial executam comandos configurados previamente pelo usuário, mas não necessariamente analisam seus hábitos para sugerir ações automaticamente. O projeto propõe uma plataforma capaz de registrar informações sobre consumo de energia, temperatura, horários de utilização dos dispositivos e preferências dos moradores, utilizando esses dados para identificar padrões e realizar previsões.
+
+
+	--------------------||--------------------
+
+<!--PÚBLICO ALVO (Quem vai utilizar o sistema?)-->
+
+
+Morador
+Pode:
+
+• visualizar consumo;
+• visualizar temperatura;
+• cadastrar dispositivos;
+• visualizar recomendações;
+• consultar o chatbot;
+• visualizar previsões;
+• configurar preferências.
+
+Administrador
+Pode:
+
+• cadastrar/editar/remover dispositivos;
+• visualizar moradores;
+• visualizar dados gerais;
+• consultar histórico;
+• visualizar métricas;
+• administrar o sistema.
+
+	--------------------||--------------------
+
+<!--REQUISITOS FUNCIONAIS (O que o sistema faz)-->
+
+| Código | Requisito                                                          |
+| ------ | ------------------------------------------------------------------ |
+| RF01   | O sistema deverá permitir o cadastro de moradores.                 |
+| RF02   | O sistema deverá permitir o cadastro de dispositivos.              |
+| RF03   | O sistema deverá registrar dados de consumo de energia.            |
+| RF04   | O sistema deverá permitir visualizar o consumo por período.        |
+| RF05   | O sistema deverá apresentar recomendações de economia.             |
+| RF06   | O sistema deverá realizar previsão de consumo.                     |
+| RF07   | O sistema deverá permitir interação com um chatbot.                |
+| RF08   | O sistema deverá permitir ao administrador gerenciar dispositivos. |
+| RF09   | O sistema deverá permitir filtrar dados por período.               |
+| RF10   | O sistema deverá apresentar gráficos de consumo.                   |
+
+
+<!--REQUISITOS NÃO FUNCIONAIS (Como o sistema deve funcionar)-->
+
+| Código | Requisito                                                              |
+| ------ | ---------------------------------------------------------------------- |
+| RNF01  | O sistema deverá possuir interface responsiva.                         |
+| RNF02  | A API deverá seguir padrão REST.                                       |
+| RNF03  | A API deverá ser documentada utilizando Swagger.                       |
+| RNF04  | O sistema deverá utilizar autenticação para acesso às áreas restritas. |
+| RNF05  | A aplicação deverá utilizar PostgreSQL para persistência.              |
+| RNF06  | O código deverá seguir princípios SOLID.                               |
+| RNF07  | O sistema deverá possuir separação entre Front-end e Back-end.         |
+| RNF08  | A aplicação deverá possuir mecanismos de tratamento de erros.          |
+
+	--------------------||--------------------
+
+<!--ESTRUTURA GERAL-->
+
+SMARTMIND
+│
+├── smartmind-web
+│       │
+│       └── React + TypeScript
+│
+├── smartmind-api
+│       │
+│       └── NestJS + TypeScript
+│
+└── database
+        │
+        └── PostgreSQL
+
+
+             ┌───────────────┐
+             │    REACT            │
+             │   Front-end         │
+             └───────┬───────┘
+                     │
+                  HTTP/JSON
+                     │
+             ┌───────▼───────┐
+             │    NESTJS           │
+             │   REST API          │
+             └───┬─────┬─────┘
+                 │     │
+          ┌──────▼─┐ ┌─▼──────────┐
+          │Postgres   │ │ TensorFlow      │
+          │           │ │    JS           │
+          └────────┘ └────────────┘
+                 │
+                 │
+             ┌───▼──────────┐
+             │ OpenAI API   	  │
+             │  Chatbot     	  │
+             └──────────────┘
+
+	--------------------||--------------------
+
+<!--ESTRUTURA FRONT-END (React + TypeScript + Vite)-->
+
+src/
+│
+├── assets/
+│
+├── components/
+│   ├── Button/
+│   ├── Card/
+│   ├── Modal/
+│   ├── Sidebar/
+│   └── Header/
+│
+├── pages/
+│   ├── Login/
+│   ├── Dashboard/
+│   ├── Consumo/
+│   ├── Dispositivos/
+│   ├── Recomendacoes/
+│   └── Chatbot/
+│
+├── services/
+│   ├── api.ts
+│   ├── consumoService.ts
+│   ├── dispositivoService.ts
+│   └── chatbotService.ts
+│
+├── hooks/
+│
+├── contexts/
+│
+├── types/
+│
+├── routes/
+│
+├── App.tsx
+└── main.tsx
+
+	--------------------||--------------------
+
+<!--ESTRUTURA BACK-END (NestJS + TypeScript + Prisma + PostgreSQL)-->
+src/
+│
+├── modules/
+│   │
+│   ├── usuarios/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   ├── infrastructure/
+│   │   └── presentation/
+│   │
+│   ├── dispositivos/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   ├── infrastructure/
+│   │   └── presentation/
+│   │
+│   ├── consumo/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   ├── infrastructure/
+│   │   └── presentation/
+│   │
+│   ├── recomendacoes/
+│   │
+│   ├── chatbot/
+│   │
+│   └── machine-learning/
+│
+├── shared/
+│
+└── main.ts
+
+	--------------------||--------------------
+
+DATABASE = smartmind
+
+<!--TABELAS INICIAIS-->
+
+usuarios
+    id
+    nome
+    email
+    senha
+
+casas
+    id
+    nome
+    usuario_id
+
+dispositivos
+    id
+    nome
+    tipo
+    potencia
+    casa_id
+
+consumos
+    id
+    dispositivo_id
+    data
+    consumo_kwh
+
+temperaturas
+    id
+    casa_id
+    temperatura
+    data
+
+recomendacoes
+    id
+    casa_id
+    titulo
+    descricao
+    data
+
+previsoes
+    id
+    casa_id
+    data
+    consumo previsto
+
+	--------------------||--------------------
+
+<!--RELACIONAMENTO-->
+
+                 PERFIL_USUARIO
+                       │
+                       │ 1:N
+                       ▼
+                    USUARIO
+                       │
+                       │ N:N
+                       ▼
+                  USUARIO_CASA
+                       │
+                       │ N:1
+                       ▼
+                     CASA
+                       │
+                 ┌─────┴─────┐
+                 │           │
+                1:N         1:N
+                 │           │
+                 ▼           ▼
+            DISPOSITIVO   RECOMENDACAO
+                 │
+          ┌──────┴──────┐
+          │             │
+         1:N           1:N
+          │             │
+          ▼             ▼
+     TEMPERATURA      CONSUMO
+          │             │
+          └──────┬──────┘
+                 │
+                 ▼
+             PREVISOES
+
+

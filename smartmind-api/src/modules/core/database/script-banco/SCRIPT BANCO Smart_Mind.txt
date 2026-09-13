@@ -1,0 +1,183 @@
+CREATE DATABASE Smart_Mind;
+
+-- Depois de criar o banco, conecte-se ao banco "smart_home"
+-- e execute o restante deste script.
+
+CREATE TABLE Perfil_Usuario (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	tipo VARCHAR(50) NOT NULL
+);
+
+INSERT INTO Perfil_Usuario (tipo)
+					VALUES ('ADMINISTRADOR'),
+						   ('COMUM');
+
+CREATE TABLE Usuario (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	nome VARCHAR(150) NOT NULL,
+	usuario VARCHAR(100) UNIQUE NOT NULL,
+	email VARCHAR(150) UNIQUE NOT NULL,
+	senha VARCHAR(255) NOT NULL,
+	dt_cadastro TIMESTAMP NOT NULL,
+	dt_exclusao TIMESTAMP NULL,
+	fk_perfil INTEGER NOT NULL,
+	ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+	CONSTRAINT fk_usuario_perfil
+		FOREIGN KEY (fk_perfil)
+		REFERENCES Perfil_Usuario (id)
+);
+
+INSERT INTO Usuario (nome, usuario, email, senha, dt_cadastro, dt_exclusao, fk_perfil)
+			 VALUES ('SEVERINO JOAQUIM BARRETO', 'severino', 'severinojbarreto@gmail.com.br', '40028922', CURRENT_TIMESTAMP, NULL, 1);
+
+CREATE TABLE Casa (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	nome VARCHAR(150) NOT NULL,
+	endereco VARCHAR(200) NOT NULL,
+	bairro VARCHAR(100) NOT NULL,
+	cidade VARCHAR(100) NOT NULL,
+	numero VARCHAR(20) NOT NULL,
+	cep CHAR(9) NOT NULL,
+	dt_cadastro TIMESTAMP NOT NULL,
+	dt_exclusao TIMESTAMP NULL,
+	fk_usuario INTEGER NOT NULL,
+	ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+	CONSTRAINT fk_casa_usuario
+		FOREIGN KEY (fk_usuario)
+		REFERENCES Usuario (id)
+);
+
+INSERT INTO Casa (nome, endereco, bairro, cidade, numero, cep, dt_cadastro, dt_exclusao, fk_usuario)
+		  VALUES ('CASA PRINCIPAL', 'RUA JOSÉ FRANCELINO OLIVEIRA', 'CACIMBAS', 'ARAPIRACA', '923', '57304-535', CURRENT_TIMESTAMP, NULL, 1);
+
+CREATE TABLE Tipo_Dispositivo (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(100) NOT NULL
+);
+
+INSERT INTO Tipo_Dispositivo (tipo)
+						VALUES ('LAMPADA'),
+							   ('INTERRUPTOR'),
+							   ('TOMADA'),
+							   ('AR CONDICIONADO'),
+							   ('VENTILADOR'),
+							   ('TELEVISAO'),
+							   ('GELADEIRA'),
+							   ('MAQUINA DE LAVAR'),
+							   ('FORNO'),
+							   ('MICRO-ONDAS'),
+							   ('CAFETEIRA'),
+							   ('ASPIRADOR DE PO'),
+							   ('CAMERA DE SEGURANCA'),
+							   ('FECHADURA INTELIGENTE'),
+							   ('CAMPAINHA INTELIGENTE'),
+							   ('SENSOR DE MOVIMENTO'),
+							   ('SENSOR DE TEMPERATURA'),
+							   ('SENSOR DE UMIDADE'),
+							   ('SENSOR DE FUMACA'),
+							   ('SENSOR DE PRESENCA'),
+							   ('TERMOSTATO'),
+							   ('ALARME'),
+							   ('ROTEADOR'),
+							   ('CAIXA DE SOM'),
+							   ('PERSIANA INTELIGENTE');
+
+CREATE TABLE Dispositivo (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	nome VARCHAR(150) NOT NULL,
+	dt_cadastro TIMESTAMP NOT NULL,
+	dt_ultima_conexao TIMESTAMP NULL,
+	fk_tipoDispositivo INTEGER NOT NULL,
+	fk_casa INTEGER NOT NULL,
+	ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+	CONSTRAINT fk_dispositivo_casa
+		FOREIGN KEY (fk_casa)
+		REFERENCES Casa (id)
+);
+
+INSERT INTO Dispositivo (nome, dt_cadastro, dt_ultima_conexao, fk_tipoDispositivo, fk_casa)
+				 VALUES ('AR CONDICIONADO DA SALA', CURRENT_TIMESTAMP, NULL, 4, 1);
+
+CREATE TABLE Consumo (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	consumo DECIMAL(5,2) NOT NULL,
+	dt_medicao TIMESTAMP NOT NULL,
+	fk_dispositivo INTEGER NOT NULL,
+
+	CONSTRAINT fk_consumo_dispositivo
+		FOREIGN KEY (fk_dispositivo)
+		REFERENCES Dispositivo (id)
+);
+
+INSERT INTO Consumo (consumo, dt_medicao, fk_dispositivo)
+			 VALUES (125.50, '2026-09-05 12:00:00', 1);
+
+CREATE TABLE Temperatura (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    temperatura DECIMAL(5,2) NOT NULL,
+    dt_medicao TIMESTAMP NOT NULL,
+    fk_casa INTEGER NOT NULL,
+
+    CONSTRAINT fk_temperatura_casa
+        FOREIGN KEY (fk_casa)
+        REFERENCES Casa(id)
+);
+
+INSERT INTO Temperatura (temperatura, dt_medicao, fk_casa)
+			 VALUES (125.50, '2026-09-05 12:00:00', 1);
+
+CREATE TABLE Previsoes (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    valor_previsto NUMERIC(10,2) NOT NULL,
+    dt_previsao TIMESTAMP NOT NULL,
+    fk_casa INTEGER NOT NULL,
+
+    CONSTRAINT fk_previsoes_casa
+        FOREIGN KEY (fk_casa)
+        REFERENCES Casa (id)
+);
+
+INSERT INTO Previsoes (valor_previsto, dt_previsao, fk_casa)
+			 VALUES (150.50, '2026-09-05 12:00:00', 1);
+
+CREATE TABLE Prioridade (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	prioridade VARCHAR(20) NOT NULL
+);
+
+INSERT INTO Prioridade (prioridade)
+				VALUES ('ALTA'),
+					   ('BAIXA'),
+					   ('MÉDIA');
+
+CREATE TABLE Recomendacoes (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    titulo VARCHAR(200) NOT NULL,
+    descricao TEXT NOT NULL,
+    dt_geracao TIMESTAMP NOT NULL,
+	fk_prioridade INTEGER NOT NULL,
+	fk_casa INTEGER NOT NULL,
+
+	CONSTRAINT fk_recomendacoes_prioridade
+		FOREIGN KEY (fk_prioridade)
+		REFERENCES Prioridade (id),
+
+    CONSTRAINT fk_recomendacoes_casa
+        FOREIGN KEY (fk_casa)
+        REFERENCES Casa (id)
+);
+
+INSERT INTO Recomendacoes (titulo,
+						   descricao,
+						   dt_geracao,
+						   fk_prioridade,
+						   fk_casa)
+				   VALUES ('Reduzir consumo de energia',
+				   		   'O consumo de energia está acima da média. Recomenda-se desligar dispositivos que não estejam em uso.',
+						   '2026-09-05 12:00:00',
+						   2,
+						   1
+						   );
