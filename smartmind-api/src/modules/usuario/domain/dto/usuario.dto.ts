@@ -4,25 +4,25 @@ import { IsEmail, IsInt, IsNotEmpty, IsString, IsPositive } from 'class-validato
 export class UsuarioInputDto {
 
     @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
+    // @IsString()
+    // @IsNotEmpty()
     nome: string;
 
     @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
+    // @IsString()
+    // @IsNotEmpty()
     usuario: string;
 
     @ApiProperty()
-    @IsEmail()
+    // @IsEmail()
     email: string;
 
     @ApiProperty()
-    @IsString()
+    // @IsString()
     senha: string;
 
     @ApiProperty()
-    @IsInt()
-    @IsPositive()
+    // @IsInt()
+    // @IsPositive()
     fk_perfil: number;
 }

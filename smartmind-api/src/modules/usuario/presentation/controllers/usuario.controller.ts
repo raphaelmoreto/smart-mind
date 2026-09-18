@@ -1,19 +1,20 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { BaseController } from '../../../core/presentation/controllers/base.controller.js';
+import { Body, Controller, Delete, Post, Res } from '@nestjs/common';
 import { CriarUsuarioUseCase } from '../../application/use-cases/criar-usuario/criar-usuario.use-case.js';
-import { Response } from '../../../core/application/response/response.js';
+import type { Response as ExpressResponse } from 'express';
 import { UsuarioInputDto } from '../../domain/dto/usuario.dto.js';
-import { ResponseHttpMapper } from '../../../core/presentation/mappers/response-http.mapper.js';
 
 @Controller('usuario')
-export class UsuarioController {
+export class UsuarioController extends BaseController {
     
     constructor (
         private readonly criarUsuarioUseCase: CriarUsuarioUseCase
-    ) { }
+    ) { super(); }
 
     @Post()
-    async post(@Body() dto: UsuarioInputDto): Promise<Response> {
+    async post(@Res() res: ExpressResponse, @Body() dto: UsuarioInputDto): Promise<ExpressResponse> {
         const result = await this.criarUsuarioUseCase.create(dto);
-        return ResponseHttpMapper.map(result);
+
+        return this.mapResponse(result.tipoRetorno, res, result);
     }
 }

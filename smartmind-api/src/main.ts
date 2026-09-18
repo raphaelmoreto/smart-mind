@@ -25,6 +25,8 @@ async function bootstrap() {
 
     await app.listen(process.env.PORT ?? 3000);
 
-    //http://localhost:3000/api
+    const url = await app.getUrl();
+    console.log(`Servidor rodando em: ${url}`);
+    //CASO APAREÇA NO TERMINAL: "http://[::1]:3000" COLOCAR NO NAVEGADOR "http://localhost:3000/api"
 }
 await bootstrap();
