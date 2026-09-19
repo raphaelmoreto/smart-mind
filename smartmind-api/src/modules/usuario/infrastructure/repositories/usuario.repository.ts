@@ -32,10 +32,14 @@ export class UsuarioRepository implements IUsuarioRepository {
     }
 
     async insert(entity: UsuarioEntity): Promise<boolean> {
+
+        /*O "ON CONFLICT DO NOTHING" ESTÁ DIZENDO PARA O BANCO: "FAÇA INSERT. SE HOUVER CONFLITO COM UMA UNIQUE, NÃO INSIRA"*/
         const query =
-            `INSERT INTO Usuario (nome, usuario, email, senha, dt_cadastro, fk_perfil)
-                            VALUES ($1, $2, $3, $4, $5, $6)
-            `;
+        `   
+            INSERT INTO Usuario (nome, usuario, email, senha, dt_cadastro, fk_perfil)
+                         VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT DO NOTHING
+        `;
 
         const values = [
             entity.getNome(),
@@ -46,7 +50,11 @@ export class UsuarioRepository implements IUsuarioRepository {
             entity.getFK_Perfil()
         ];
 
-        return (await this.pool.query(query, values)).rowCount === 1;
+        const teste = await this.pool.query(query, values)
+        console.log(teste.rowCount);
+
+        // return (await this.pool.query(query, values)).rowCount === 1;
+        return teste.rowCount === 1;
     }
 
     update(entity: UsuarioEntity): Promise<boolean> {
