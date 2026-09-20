@@ -6,26 +6,33 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 //"Pool" É UM OBJETO QUE GERENCIA UM "pool" DE CONEXÕES COM O BANCO
 import { Pool } from "pg";
 
-import { DATABASE_POOL } from "./database.constants.js";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
 @Module({
-    imports: [ConfigModule],
-    providers: [
-        {
-            provide: DATABASE_POOL,
+    imports: [
+        ConfigModule,
+
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+
             inject: [ConfigService],
-            useFactory: (configService: ConfigService) => {
-                //CRIANDO A CONEXÃO ("pool") DO BANCO POSTGRESQL
-                return new Pool({
-                    host: configService.getOrThrow<string>('DB_HOST'),
-                    port: Number(configService.getOrThrow<number>('DB_PORT')),
-                    user: configService.getOrThrow<string>('DB_USER'),
-                    password: configService.getOrThrow<string>('DB_PASSWORD'),
-                    database: configService.getOrThrow<string>('DB_NAME'),
-                })
-            }
-        },
+
+            useFactory: (configService: ConfigService) => ({
+                type: "postgres",
+
+                host: configService.getOrThrow<string>("DB_HOST"),
+                port: Number(
+                    configService.getOrThrow<string>("DB_PORT")
+                ),
+
+                username: configService.getOrThrow<string>("DB_USER"),
+                password: configService.getOrThrow<string>("DB_PASSWORD"),
+                database: configService.getOrThrow<string>("DB_NAME"),
+
+                autoLoadEntities: true,
+                synchronize: false,
+            }),
+        }),
     ],
-    exports: [DATABASE_POOL]
 })
 export class DatabaseModule { }

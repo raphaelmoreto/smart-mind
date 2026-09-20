@@ -1,34 +1,33 @@
 import { HttpStatus } from "@nestjs/common";
 import type { Response as ExpressResponse } from 'express';
-import { TipoRetorno } from './../../application/enums/eTipoRetorno.js';
 
 export class BaseController {
 
     protected mapResponse(
-        tipoRetorno: TipoRetorno,
+        statusCode: number,
         res: ExpressResponse,
         data?: unknown
     ): ExpressResponse {
-        switch (tipoRetorno) {
-            case TipoRetorno.BadRequest:
+        switch (statusCode) {
+            case 400:
                 return res.status(HttpStatus.BAD_REQUEST).json(data);
 
-            case TipoRetorno.Conflict:
+            case 409:
                 return res.status(HttpStatus.CONFLICT).json(data);
 
-            case TipoRetorno.Created:
+            case 201:
                 return res.status(HttpStatus.CREATED).json(data);
             
-            case TipoRetorno.NoContent:
+            case 204:
                 return res.status(HttpStatus.NO_CONTENT).send();
 
-            case TipoRetorno.NotFound:
+            case 404:
                 return res.status(HttpStatus.NOT_FOUND).json(data);
 
-            case TipoRetorno.Ok:
+            case 200:
                 return res.status(HttpStatus.OK).json(data);
 
-            case TipoRetorno.Validation:
+            case 422:
                 return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json(data);
 
             default:

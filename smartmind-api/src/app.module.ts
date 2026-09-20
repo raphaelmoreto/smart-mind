@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 
 //MÓDULO RESPONSÁVEL POR TRABALHAR COM CONFIGURAÇÕES DA APLICAÇÃO
-import { ConfigModule } from '@nestjs/config'; 
+import { ConfigModule } from '@nestjs/config';
+
+import { DatabaseModule } from './modules/core/database/database.module.js';
 
 //MÓDULO RESPONSÁVEL PELA FUNCIONALIDADE DE USUÁRIOS
 import { UsuarioModule } from './modules/usuario/usuario.module.js';
@@ -23,6 +25,7 @@ import { UsuarioModule } from './modules/usuario/usuario.module.js';
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+        DatabaseModule,
         UsuarioModule
     ],
     controllers: [],

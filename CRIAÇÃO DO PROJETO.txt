@@ -131,6 +131,15 @@ npm install class-validator
 npm install class-transformer
 
 
+# ------------------------------------------------------------
+# TypeORM
+# ------------------------------------------------------------
+
+# Permite pegar o resultado do banco e transformar
+# automaticamente em uma instância da classe
+
+npm install @nestjs/typeorm typeorm pg
+
 
 # ============================================================
 # 6. CRIAR O MÓDULO DE USUÁRIO
