@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+
 import type { IUsuarioRepository } from '../../domain/interfaces/repositories/usuario.repository.interface.js';
 import { Response } from '../../../core/application/response/response.js';
 import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
@@ -17,8 +18,8 @@ export class DeletarUsuarioUseCase {
         if (id < 0)
             return Response.erro(TipoRetorno.BadRequest, "id do usuário não informado!");
 
-        const verficarUsuario = await this.usuarioRepository.verificarSeUsuarioExiste(id);
-        if (!verficarUsuario) {
+        const verificarUsuario = await this.usuarioRepository.verificarSeUsuarioExiste(id);
+        if (!verificarUsuario) {
             return Response.erro(
                 TipoRetorno.NotFound,
                 "usuário não encontrado na base!"

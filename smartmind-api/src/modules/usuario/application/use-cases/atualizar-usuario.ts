@@ -3,7 +3,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { IUsuarioRepository } from '../../domain/interfaces/repositories/usuario.repository.interface.js';
 import { Response } from '../../../core/application/response/response.js';
 import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
-import { UsuarioEntity } from '../../domain/entities/usuario.entity.js';
 import { UsuarioInputDto } from '../../domain/dto/usuario.dto.js';
 import { USUARIO_REPOSITORY } from '../../usuario.constants.js';
 

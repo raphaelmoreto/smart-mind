@@ -28,6 +28,8 @@ import { UsuarioRepository } from './infrastructure/repositories/usuario.reposit
         BuscarUsuariosUseCase,
         AtualizarUsuarioUseCase
     ],
-    exports: []
+    exports: [
+        USUARIO_REPOSITORY
+    ]
 })
 export class UsuarioModule {}

@@ -1,7 +1,4 @@
-CREATE DATABASE Smart_Mind;
 
--- Depois de criar o banco, conecte-se ao banco "smart_home"
--- e execute o restante deste script.
 
 CREATE TABLE "Perfil_Usuario" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -34,7 +31,7 @@ INSERT INTO "Usuario" (nome, usuario, email, senha, dt_cadastro, dt_exclusao, fk
 CREATE TABLE "Casa" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	nome VARCHAR(150) NOT NULL,
-	endereco VARCHAR(200) NOT NULL,
+	rua VARCHAR(200) NOT NULL,
 	bairro VARCHAR(100) NOT NULL,
 	cidade VARCHAR(100) NOT NULL,
 	numero VARCHAR(20) NOT NULL,
@@ -49,7 +46,7 @@ CREATE TABLE "Casa" (
 		REFERENCES "Usuario" (id)
 );
 
-INSERT INTO "Casa" (nome, endereco, bairro, cidade, numero, cep, dt_cadastro, dt_exclusao, fk_usuario)
+INSERT INTO "Casa" (nome, rua, bairro, cidade, numero, cep, dt_cadastro, dt_exclusao, fk_usuario)
 		  VALUES ('CASA PRINCIPAL', 'RUA JOSÉ FRANCELINO OLIVEIRA', 'CACIMBAS', 'ARAPIRACA', '923', '57304-535', CURRENT_TIMESTAMP, NULL, 1);
 
 CREATE TABLE "Tipo_Dispositivo" (

@@ -1,0 +1,1 @@
+export const CASA_REPOSITORY = Symbol("CasaRepository");

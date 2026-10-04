@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+
 import type { IUsuarioRepository } from '../../domain/interfaces/repositories/usuario.repository.interface.js';
 import { Response } from '../../../core/application/response/response.js';
 import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
@@ -14,7 +15,7 @@ export class CriarUsuarioUseCase {
         private readonly usuarioRepository: IUsuarioRepository
     ) { }
 
-    async create(dto: UsuarioInputDto): Promise<Response> {
+    async create (dto: UsuarioInputDto): Promise<Response> {
         const verificarFk_Perfil = await this.usuarioRepository.verificarSePerfilUsuarioExiste(dto.fk_perfil);
         if (!verificarFk_Perfil) {
             return Response.erro(

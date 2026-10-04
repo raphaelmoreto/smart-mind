@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsInt, IsNotEmpty, IsString, IsPositive } from 'class-validator';
-import { UsuarioEntity } from '../entities/usuario.entity.js';
 
 export class UsuarioInputDto {
 

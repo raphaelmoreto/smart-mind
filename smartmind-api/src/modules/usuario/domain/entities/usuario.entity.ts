@@ -21,9 +21,7 @@ export class UsuarioEntity extends BaseEntity {
     @Column()
     private fk_perfil: number;
 
-    constructor () {
-        super();
-    }
+    constructor () { super(); }
 
     public static instanciarUsuario(nome: string, usuario: string, email: string, senha: string, fk_perfil: number): UsuarioEntity {
         const usuarioEntity = new UsuarioEntity();

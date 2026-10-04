@@ -21,21 +21,21 @@ export class UsuarioController extends BaseController {
     ) { super(); }
 
     @Delete(":id")
-    async delete(@Res() res: ExpressResponse, @Param("id") id: number) {
+    async delete(@Res() res: ExpressResponse, @Param("id") id: number): Promise<ExpressResponse> {
         const result = await this.deletarUsuarioUseCase.delete(id);
 
         return this.mapResponse(result.tipoRetorno, res, result);
     }
 
     @Get(":id")
-    async getUsuarioPorId(@Res() res: ExpressResponse, @Param("id") id: number) {
+    async getUsuarioPorId(@Res() res: ExpressResponse, @Param("id") id: number): Promise<ExpressResponse> {
         const result = await this.buscarUsuarioPorIdUseCase.buscaPorId(id);
 
         return this.mapResponse(200, res, result);
     }
 
     @Get()
-    async getUsuarios(@Res() res: ExpressResponse) {
+    async getUsuarios(@Res() res: ExpressResponse): Promise<ExpressResponse> {
         const result = await this.buscarUsuariosUseCase.buscarUsuarios();
 
         return this.mapResponse(200, res, result);

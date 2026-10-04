@@ -137,8 +137,7 @@ export class UsuarioRepository implements IUsuarioRepository {
             })
             .where('id = :id', { id: entity.getId() })
             .execute();
-
-        console.log("atualização",result);
+            
         return result.affected === 1;
     }
 
