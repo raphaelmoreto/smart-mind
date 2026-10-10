@@ -36,17 +36,12 @@ SmartMind/
     └── package.json
 ```
 
-> A estrutura acima foi criada a partir da organização visual apresentada no projeto. Os detalhes internos de `src/` ainda podem ser documentados conforme os módulos e funcionalidades forem definidos.
-
----
-
 ## 🚀 Tecnologias
 
 ### Backend — `smartmind-api`
 
 Pela estrutura do projeto, o backend utiliza:
 
-- **Node.js**
 - **TypeScript**
 - **NestJS**
 - **Vitest** para testes
@@ -56,13 +51,10 @@ Pela estrutura do projeto, o backend utiliza:
 
 Pela presença do `vite.config.ts`, o frontend utiliza:
 
-- **Node.js**
-- **TypeScript/JavaScript**
+- **JavaScript**
 - **Vite**
 - **ESLint**
 - **NPM**
-
-> O framework de UI utilizado no frontend (por exemplo, React ou outro) pode ser especificado aqui conforme a implementação do projeto.
 
 ---
 
@@ -182,29 +174,6 @@ DATABASE_URL=...
 API_URL=http://localhost:3000
 ```
 
-> Os nomes das variáveis devem ser ajustados de acordo com a configuração real do projeto.
-
----
-
-## 🧪 Testes
-
-O backend possui uma estrutura de testes dedicada:
-
-```text
-smartmind-api/
-└── test/
-```
-
-Além disso, o projeto possui configurações relacionadas ao **Vitest**, indicando o uso dessa ferramenta para testes automatizados.
-
-A estratégia recomendada é manter testes para:
-
-- regras de negócio;
-- serviços;
-- controllers/endpoints;
-- cenários de erro;
-- integração entre componentes importantes.
-
 ---
 
 ## 🛠️ Scripts
@@ -216,8 +185,6 @@ Os scripts devem ser consultados no `package.json`. A estrutura atual indica com
 ```bash
 npm run start
 npm run start:dev
-npm test
-npm run test:e2e
 ```
 
 ### `smartmind-web`
