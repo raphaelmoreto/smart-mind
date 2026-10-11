@@ -20,8 +20,7 @@ export class UsuarioRepository implements IUsuarioRepository {
     constructor (
         @InjectRepository(UsuarioEntity)
         private readonly repository: Repository<UsuarioEntity>
-    )
-    { }
+    ) { }
 
     async delete(id: number): Promise<boolean> {
         const result = await this.repository.query(

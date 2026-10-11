@@ -8,6 +8,7 @@ import { DatabaseModule } from './modules/core/database/database.module.js';
 //MÓDULO RESPONSÁVEL PELA FUNCIONALIDADE DE USUÁRIOS
 import { UsuarioModule } from './modules/usuario/usuario.module.js';
 import { CasaModule } from './modules/casa/casa.module.js';
+import { AuthModule } from './modules/auth/auth.module.js';
 
 /*
 • @Module({}) - É UM DECORATOR QUE TRANSFORMA UM MÓDULO RECONHECIDO PELO NESTJS; 
@@ -28,7 +29,8 @@ import { CasaModule } from './modules/casa/casa.module.js';
         }),
         DatabaseModule,
         UsuarioModule,
-        CasaModule
+        CasaModule,
+        AuthModule
     ],
     controllers: [],
     providers: [],
