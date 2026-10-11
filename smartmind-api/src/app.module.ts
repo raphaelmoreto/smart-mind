@@ -9,6 +9,7 @@ import { DatabaseModule } from './modules/core/database/database.module.js';
 import { UsuarioModule } from './modules/usuario/usuario.module.js';
 import { CasaModule } from './modules/casa/casa.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { DispositivoModule } from './modules/dispositivos/dispositivos.modules.js';
 
 /*
 • @Module({}) - É UM DECORATOR QUE TRANSFORMA UM MÓDULO RECONHECIDO PELO NESTJS; 
@@ -30,7 +31,8 @@ import { AuthModule } from './modules/auth/auth.module.js';
         DatabaseModule,
         UsuarioModule,
         CasaModule,
-        AuthModule
+        AuthModule,
+        DispositivoModule
     ],
     controllers: [],
     providers: [],
