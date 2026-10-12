@@ -86,7 +86,7 @@ CREATE TABLE "Dispositivo" (
 	nome VARCHAR(150) NOT NULL,
 	dt_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	dt_ultima_conexao TIMESTAMP NULL,
-	fk_tipoDispositivo INTEGER NOT NULL,
+	"fk_tipoDispositivo" INTEGER NOT NULL,
 	fk_casa INTEGER NOT NULL,
 	ativo BOOLEAN NOT NULL DEFAULT TRUE,
 
@@ -95,7 +95,7 @@ CREATE TABLE "Dispositivo" (
 		REFERENCES "Casa" (id)
 );
 
-INSERT INTO "Dispositivo" (nome, dt_cadastro, dt_ultima_conexao, fk_tipoDispositivo, fk_casa)
+INSERT INTO "Dispositivo" (nome, dt_cadastro, dt_ultima_conexao, "fk_tipoDispositivo", fk_casa)
 				 VALUES ('AR CONDICIONADO DA SALA', CURRENT_TIMESTAMP, NULL, 4, 1);
 
 CREATE TABLE "Consumo" (

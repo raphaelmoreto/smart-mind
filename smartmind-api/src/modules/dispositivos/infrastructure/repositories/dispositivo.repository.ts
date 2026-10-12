@@ -72,7 +72,7 @@ export class DispositivoRepository implements IDispositivoRepository {
         const result = await this.repository
             .createQueryBuilder()
             .insert()
-            .into(DispositivoEntity)
+            .into("Dispositivo")
             .values({
                 nome: entity.getNome(),
                 fk_tipoDispositivo: entity.getFK_TipoDispositivo(),
@@ -86,7 +86,7 @@ export class DispositivoRepository implements IDispositivoRepository {
     async update(entity: DispositivoEntity): Promise<boolean> {
         const result = await this.repository
             .createQueryBuilder()
-            .update(DispositivoEntity)
+            .update("Dispositivo")
             .set({
                 nome: entity.getNome(),
                 fk_tipoDispositivo: entity.getFK_TipoDispositivo(),

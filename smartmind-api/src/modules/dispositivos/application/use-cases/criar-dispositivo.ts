@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { Response } from '../../../core/application/response/response.ts';
-import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.ts';
-import { DISPOSITIVO_REPOSITORY } from '../../dispositivos.constants.ts';
+import { Response } from '../../../core/application/response/response.js';
+import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
+import { DISPOSITIVO_REPOSITORY } from '../../dispositivos.constants.js';
 import type { IDispositivoRepository } from '../../domain/interfaces/repositories/dispositivo.repository.interface.ts';
-import { DispositivoInputDto } from '../../domain/dto/dispositivo.dto.ts';
-import { DispositivoEntity } from '../../domain/entities/dispositivo.entity.ts';
+import { DispositivoInputDto } from '../../domain/dto/dispositivo.dto.js';
+import { DispositivoEntity } from '../../domain/entities/dispositivo.entity.js';
 
 @Injectable()
 export class CriarDispositivoUseCase {
