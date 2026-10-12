@@ -4,14 +4,14 @@ import { LoginInputDto } from "../../domain/dto/login.dto.js";
 import type { Response as ExpressResponse } from 'express';
 import { ValidarLoginUseCase } from "../../application/use-cases/validar-login.js";
 
-@Controller()
+@Controller("api/login")
 export class AuthController extends BaseController {
 
     constructor (
         private readonly validarLoginUseCase: ValidarLoginUseCase
     ) { super(); }
 
-    @Post("login")
+    @Post()
     async post(@Res() res: ExpressResponse, @Body() dto: LoginInputDto): Promise<ExpressResponse> {
         const result = await this.validarLoginUseCase.validarLogin(dto);
 

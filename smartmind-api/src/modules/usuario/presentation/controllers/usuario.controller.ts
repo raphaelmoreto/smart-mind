@@ -9,7 +9,7 @@ import { DeletarUsuarioUseCase } from '../../application/use-cases/deletar-usuar
 import type { Response as ExpressResponse } from 'express';
 import { UsuarioInputDto } from '../../domain/dto/usuario.dto.js';
 
-@Controller("usuario")
+@Controller("api/usuario")
 export class UsuarioController extends BaseController {
     
     constructor (

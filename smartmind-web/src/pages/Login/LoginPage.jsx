@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { authService } from '../../services/authService.js';
+import logo from '../../assets/logo.png';
 import './LoginPage.css';
 
 export default function LoginPage({ onLogin }) {
@@ -50,23 +51,8 @@ export default function LoginPage({ onLogin }) {
         <main className="login-page">
             <section className="login-card">
                 <header className="login-heading">
-                    <div className="login-logo" aria-hidden="true">
-                        <svg
-                            viewBox="0 0 48 48"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                d="M8 36L20 10H28L40 36H31L24 20L17 36H8Z"
-                                fill="currentColor"
-                            />
-                            <path
-                                d="M17 29H31"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                                strokeLinecap="round"
-                            />
-                        </svg>
+                    <div className="login-logo">
+                        <img src={logo} alt="Logo da aplicação" />
                     </div>
 
                     <h1>Bem-vindo</h1>
@@ -259,11 +245,6 @@ export default function LoginPage({ onLogin }) {
                     </button>
                 </p>
             </section>
-
-            <footer className="login-footer">
-                <span className="login-footer-dot" />
-                Autenticação via API
-            </footer>
         </main>
     );
 }

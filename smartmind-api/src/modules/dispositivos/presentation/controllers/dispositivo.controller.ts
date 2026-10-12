@@ -9,7 +9,7 @@ import { CriarDispositivoUseCase } from '../../application/use-cases/criar-dispo
 import { DeletarDispositivoUseCase } from '../../application/use-cases/deletar-dispositivo.js';
 import { DispositivoInputDto } from '../../domain/dto/dispositivo.dto.js';
 
-@Controller('dispositivo')
+@Controller('api/dispositivo')
 export class DispositivoController extends BaseController {
     constructor(
         private readonly atualizarDispositivoUseCase: AtualizarDispositivoUseCase,

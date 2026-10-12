@@ -9,7 +9,7 @@ import { CriarCasaUseCase } from '../../application/use-cases/criar-casa.js';
 import { DeletarCasaUseCase } from '../../application/use-cases/deletar-casa.js';
 import type { Response as ExpressResponse } from 'express';
 
-@Controller('casa')
+@Controller('api/casa')
 export class CasaController extends BaseController {
 
     constructor (
