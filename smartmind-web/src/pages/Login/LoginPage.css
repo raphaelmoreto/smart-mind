@@ -1,21 +1,19 @@
-.login-page,
-.login-page * {
-    box-sizing: border-box;
-}
+/* =========================
+   ESTRUTURA DA PÁGINA
+========================= */
 
 .login-page {
     --primary: #001B8C;
     --secondary: #00488C;
-    --purple: #11008C;
-    --cyan: #00758C;
-    --violet: #3F008C;
 
     min-height: 100vh;
     min-height: 100dvh;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     padding: 32px 20px 24px;
 
     background:
@@ -27,6 +25,7 @@
         #070a14;
 
     color: #f1f5f9;
+
     font-family:
         Inter,
         -apple-system,
@@ -34,6 +33,17 @@
         "Segoe UI",
         sans-serif;
 }
+
+.login-page,
+.login-page *,
+.login-page *::before,
+.login-page *::after {
+    box-sizing: border-box;
+}
+
+/* =========================
+   CARTÃO PRINCIPAL
+========================= */
 
 .login-card {
     width: 100%;
@@ -46,6 +56,10 @@
 
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
+
+/* =========================
+   CABEÇALHO E LOGOTIPO
+========================= */
 
 .login-heading {
     margin-bottom: 30px;
@@ -66,12 +80,14 @@
 
 .login-logo img {
     width: 100%;
-    height: 100%;
+    height: 80%;
+    border-radius: 30%;
     object-fit: contain;
 }
 
 .login-heading h1 {
     margin: 0;
+
     color: #f8fafc;
     font-size: 26px;
     font-weight: 700;
@@ -80,10 +96,15 @@
 
 .login-heading p {
     margin: 9px 0 0;
+
     color: #8995ad;
     font-size: 13px;
     line-height: 1.6;
 }
+
+/* =========================
+   FORMULÁRIO
+========================= */
 
 .login-form {
     display: flex;
@@ -129,11 +150,11 @@
     color: #626e86;
 }
 
-.login-field input:hover {
+.login-field input:hover:not(:disabled) {
     border-color: #3b4966;
 }
 
-.login-field input:focus {
+.login-field input:focus-visible {
     border-color: var(--secondary);
     background: #0b1120;
     box-shadow: 0 0 0 3px rgba(0, 72, 140, 0.22);
@@ -144,8 +165,13 @@
     opacity: 0.6;
 }
 
+/* =========================
+   CAMPO DE SENHA
+========================= */
+
 .login-password-wrapper {
     position: relative;
+
     display: flex;
     align-items: center;
 }
@@ -168,10 +194,12 @@
 
     border: none;
     border-radius: 6px;
+
     background: transparent;
     color: #8290a9;
 
     cursor: pointer;
+
     transition: color 160ms ease;
 }
 
@@ -188,6 +216,15 @@
     height: 19px;
 }
 
+.password-toggle:focus-visible {
+    outline: 2px solid #40b9d0;
+    outline-offset: 2px;
+}
+
+/* =========================
+   RECUPERAÇÃO DE SENHA
+========================= */
+
 .login-forgot {
     display: flex;
     justify-content: flex-end;
@@ -197,13 +234,17 @@
 .login-forgot button,
 .login-register button {
     padding: 0;
+
     border: none;
     background: transparent;
     color: #4ba8df;
+
     font: inherit;
     font-size: 12px;
     font-weight: 500;
+
     cursor: pointer;
+
     transition: color 160ms ease;
 }
 
@@ -212,6 +253,43 @@
     color: #76d6e5;
     text-decoration: underline;
 }
+
+.login-forgot button:focus-visible,
+.login-register button:focus-visible {
+    outline: 2px solid #40b9d0;
+    outline-offset: 3px;
+}
+
+/* =========================
+   MENSAGENS
+========================= */
+
+.login-message {
+    margin: -5px 0 0;
+    padding: 10px 12px;
+
+    border-radius: 7px;
+
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.login-error {
+    border: 1px solid #7f2638;
+    background: #29121c;
+    color: #ff9cac;
+}
+
+.login-notice {
+    border: 1px solid #17556c;
+    background: #0d202c;
+    color: #77d9ed;
+}
+
+/* =========================
+   BOTÃO DE ENTRAR
+========================= */
 
 .login-submit {
     display: flex;
@@ -235,6 +313,7 @@
     font-weight: 600;
 
     cursor: pointer;
+
     transition:
         background 160ms ease,
         border-color 160ms ease,
@@ -255,9 +334,18 @@
     opacity: 0.65;
 }
 
+.login-submit:focus-visible,
+.google-login:focus-visible {
+    outline: 2px solid #40b9d0;
+    outline-offset: 3px;
+}
+
+/* Indicador de carregamento */
+
 .login-spinner {
     width: 16px;
     height: 16px;
+    flex-shrink: 0;
 
     border: 2px solid rgba(255, 255, 255, 0.35);
     border-top-color: #ffffff;
@@ -272,44 +360,35 @@
     }
 }
 
-.login-message {
-    margin: -5px 0 0;
-    padding: 10px 12px;
-    border-radius: 7px;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.login-error {
-    border: 1px solid #7f2638;
-    background: #29121c;
-    color: #ff9cac;
-}
-
-.login-notice {
-    border: 1px solid #17556c;
-    background: #0d202c;
-    color: #77d9ed;
-}
+/* =========================
+   DIVISOR
+========================= */
 
 .login-divider {
     display: flex;
     align-items: center;
     gap: 12px;
+
     margin: 23px 0 20px;
 }
 
 .login-divider span {
     flex: 1;
     height: 1px;
+
     background: #273047;
 }
 
 .login-divider p {
     margin: 0;
+
     color: #78849b;
     font-size: 11px;
 }
+
+/* =========================
+   LOGIN COM GOOGLE
+========================= */
 
 .google-login {
     display: flex;
@@ -332,6 +411,7 @@
     font-weight: 500;
 
     cursor: pointer;
+
     transition:
         background 160ms ease,
         border-color 160ms ease;
@@ -353,6 +433,10 @@
     flex-shrink: 0;
 }
 
+/* =========================
+   CADASTRO
+========================= */
+
 .login-register {
     display: flex;
     flex-wrap: wrap;
@@ -361,6 +445,7 @@
     gap: 5px;
 
     margin: 24px 0 0;
+
     color: #8995ad;
     font-size: 12px;
     line-height: 1.6;
@@ -371,30 +456,9 @@
     font-size: 12px;
 }
 
-.login-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-
-    margin-top: 22px;
-    color: #68758d;
-    font-size: 11px;
-}
-
-.login-footer-dot {
-    width: 6px;
-    height: 6px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--cyan);
-    box-shadow: 0 0 8px rgba(0, 117, 140, 0.45);
-}
-
-.login-page button:focus-visible {
-    outline: 2px solid #40b9d0;
-    outline-offset: 3px;
-}
+/* =========================
+   RESPONSIVIDADE
+========================= */
 
 @media (max-width: 480px) {
     .login-page {
@@ -414,6 +478,10 @@
     }
 }
 
+/* =========================
+   MOVIMENTO REDUZIDO
+========================= */
+
 @media (prefers-reduced-motion: reduce) {
     .login-page *,
     .login-page *::before,
@@ -421,5 +489,6 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

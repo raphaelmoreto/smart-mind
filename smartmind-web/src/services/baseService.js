@@ -1,4 +1,3 @@
-
 import { environment } from '../config/environment.js';
 
 export class BaseService {

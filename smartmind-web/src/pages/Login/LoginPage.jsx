@@ -1,11 +1,12 @@
-
 import { useState } from 'react';
 import { authService } from '../../services/authService.js';
 import logo from '../../assets/logo.png';
 import './LoginPage.css';
 
-export default function LoginPage({ onLogin }) {
-    const [username, setUsername] = useState('');
+export default function LoginPage() {
+    const [username, setUsername] = useState(() =>
+        authService.getCurrentUser()
+    );
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function LoginPage({ onLogin }) {
 
             authService.saveSession(result);
 
-            onLogin(authService.getCurrentUser());
+            setUsername(authService.getCurrentUser());
         } catch (err) {
             setError(
                 err.message || 'Não foi possível realizar o login.'
@@ -62,10 +63,7 @@ export default function LoginPage({ onLogin }) {
                     </p>
                 </header>
 
-                <form
-                    className="login-form"
-                    onSubmit={handleSubmit}
-                >
+                <form className="login-form" onSubmit={handleSubmit}>
                     <div className="login-field">
                         <label htmlFor="usuario">
                             Usuário
@@ -122,17 +120,6 @@ export default function LoginPage({ onLogin }) {
                                 {showPassword ? (
                                     <svg viewBox="0 0 24 24" aria-hidden="true">
                                         <path
-                                            d="M3 3L21 21M10.6 10.6A2 2 0 0013.4 13.4M9.9 5.2A10.8 10.8 0 0112 5C17 5 21 12 21 12A16 16 0 0118 15.7M6.2 6.2C4.1 7.6 3 9.5 3 9.5S7 17 12 17C13.2 17 14.3 16.7 15.3 16.2"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </svg>
-                                ) : (
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path
                                             d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
                                             fill="none"
                                             stroke="currentColor"
@@ -145,6 +132,17 @@ export default function LoginPage({ onLogin }) {
                                             fill="none"
                                             stroke="currentColor"
                                             strokeWidth="1.8"
+                                        />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M3 3L21 21M10.6 10.6A2 2 0 0013.4 13.4M9.9 5.2A10.8 10.8 0 0112 5C17 5 21 12 21 12A16 16 0 0118 15.7M6.2 6.2C4.1 7.6 3 9.5 3 9.5S7 17 12 17C13.2 17 14.3 16.7 15.3 16.2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
                                         />
                                     </svg>
                                 )}
@@ -175,11 +173,7 @@ export default function LoginPage({ onLogin }) {
                         </p>
                     )}
 
-                    <button
-                        className="login-submit"
-                        type="submit"
-                        disabled={loading}
-                    >
+                    <button className="login-submit" type="submit" disabled={loading}>
                         {loading ? (
                             <>
                                 <span className="login-spinner" />
@@ -193,7 +187,7 @@ export default function LoginPage({ onLogin }) {
 
                 <div className="login-divider">
                     <span />
-                    <p>ou</p>
+                        <p>ou</p>
                     <span />
                 </div>
 

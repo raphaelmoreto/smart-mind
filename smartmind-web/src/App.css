@@ -1,0 +1,151 @@
+/* =========================
+   TELA AUTENTICADA
+========================= */
+
+.app-home {
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: #f6f8fc;
+}
+
+/* Cartão principal */
+
+.app-home-card {
+    width: 100%;
+    max-width: 480px;
+    padding: 40px;
+
+    text-align: center;
+
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 16px;
+
+    box-shadow: 0 12px 40px rgba(28, 44, 77, 0.05);
+}
+
+/* Ícone de autenticação */
+
+.app-home-icon {
+    display: grid;
+    place-items: center;
+
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 24px;
+
+    border-radius: 50%;
+
+    background: #dcfce7;
+    color: #15803d;
+
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* Título */
+
+.app-home-card h1 {
+    margin: 0 0 12px;
+
+    color: #202938;
+    font-family: 'Manrope', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+
+    overflow-wrap: anywhere;
+}
+
+/* Mensagem */
+
+.app-home-card p {
+    margin: 0 0 20px;
+
+    color: #788398;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Perfil do usuário */
+
+.app-user-role {
+    display: inline-block;
+    margin-bottom: 28px;
+    padding: 7px 12px;
+
+    border-radius: 20px;
+
+    background: #eef2ff;
+    color: #315be8;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Botão de sair */
+
+.app-logout-button {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 16px;
+
+    border: 1px solid #dce2ec;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #344057;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    transition:
+        background 160ms ease,
+        border-color 160ms ease;
+}
+
+.app-logout-button:hover:not(:disabled) {
+    background: #f0f3f9;
+    border-color: #c8d1e0;
+}
+
+.app-logout-button:focus-visible {
+    outline: 2px solid #315be8;
+    outline-offset: 3px;
+}
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 520px) {
+    .app-home {
+        padding: 20px 16px;
+    }
+
+    .app-home-card {
+        padding: 30px 22px;
+    }
+
+    .app-home-card h1 {
+        font-size: 23px;
+    }
+}
+
+/* Respeita a preferência por movimento reduzido */
+
+@media (prefers-reduced-motion: reduce) {
+    .app-home-card *,
+    .app-home-card *::before,
+    .app-home-card *::after {
+        transition-duration: 0.01ms !important;
+    }
+}
