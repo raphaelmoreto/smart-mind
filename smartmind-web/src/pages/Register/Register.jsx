@@ -3,6 +3,8 @@ import "./Register.css";
 import { useState } from "react";
 import { Link } from "react-router";
 
+import Logo from "../../assets/logo.png";
+
 export default function Register() {
     const [formData, setFormData] = useState({
         nome: "",
@@ -38,24 +40,7 @@ export default function Register() {
         <div className="app-container">
             <div className="card-container">
                 <div className="logo-box">
-                    <svg
-                        className="logo-icon"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                    >
-                        <path
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                        <path
-                            d="M9 10a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1v-2z"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
+                    <img src={Logo} alt="Logo da aplicação" />
                 </div>
 
                 {/* Títulos */}
@@ -125,9 +110,38 @@ export default function Register() {
                             <button
                                 type="button"
                                 className="eye-btn"
-                                onClick={() => setMostrarSenha(!mostrarSenha)}
+                                onClick={() => setMostrarSenha((value) => !value)}
+                                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
                             >
-                                👁️
+                                {mostrarSenha ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
+                                        <circle
+                                            cx="12"
+                                            cy="12"
+                                            r="3"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M3 3L21 21M10.6 10.6A2 2 0 0013.4 13.4M9.9 5.2A10.8 10.8 0 0112 5C17 5 21 12 21 12A16 16 0 0118 15.7M6.2 6.2C4.1 7.6 3 9.5 3 9.5S7 17 12 17C13.2 17 14.3 16.7 15.3 16.2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -146,11 +160,38 @@ export default function Register() {
                             <button
                                 type="button"
                                 className="eye-btn"
-                                onClick={() =>
-                                    setMostrarConfSenha(!mostrarConfSenha)
-                                }
+                                onClick={() => setMostrarConfSenha((value) => !value)}
+                                aria-label={mostrarConfSenha ? "Ocultar senha" : "Mostrar senha"}
                             >
-                                👁️
+                                {mostrarConfSenha ? (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
+                                        <circle
+                                            cx="12"
+                                            cy="12"
+                                            r="3"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                        />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path
+                                            d="M3 3L21 21M10.6 10.6A2 2 0 0013.4 13.4M9.9 5.2A10.8 10.8 0 0112 5C17 5 21 12 21 12A16 16 0 0118 15.7M6.2 6.2C4.1 7.6 3 9.5 3 9.5S7 17 12 17C13.2 17 14.3 16.7 15.3 16.2"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                )}
                             </button>
                         </div>
                     </div>
