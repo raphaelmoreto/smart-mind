@@ -1,10 +1,11 @@
+
 /* =========================
    ESTRUTURA DA PÁGINA
 ========================= */
 
 .login-page {
-    --primary: #001B8C;
-    --secondary: #00488C;
+    --cor-primaria-login: #001b8c;
+    --cor-secundaria-login: #00488c;
 
     min-height: 100vh;
     min-height: 100dvh;
@@ -32,13 +33,6 @@
         BlinkMacSystemFont,
         "Segoe UI",
         sans-serif;
-}
-
-.login-page,
-.login-page *,
-.login-page *::before,
-.login-page *::after {
-    box-sizing: border-box;
 }
 
 /* =========================
@@ -131,7 +125,7 @@
     padding: 0 13px;
 
     border: 1px solid #29344b;
-    border-radius: 8px;
+    border-radius: var(--raio-borda-medio);
     outline: none;
 
     background: #090e1b;
@@ -141,9 +135,9 @@
     font-size: 13px;
 
     transition:
-        border-color 160ms ease,
-        box-shadow 160ms ease,
-        background 160ms ease;
+        border-color var(--transicao-rapida),
+        box-shadow var(--transicao-rapida),
+        background var(--transicao-rapida);
 }
 
 .login-field input::placeholder {
@@ -155,7 +149,7 @@
 }
 
 .login-field input:focus-visible {
-    border-color: var(--secondary);
+    border-color: var(--cor-secundaria-login);
     background: #0b1120;
     box-shadow: 0 0 0 3px rgba(0, 72, 140, 0.22);
 }
@@ -193,18 +187,18 @@
     padding: 8px;
 
     border: none;
-    border-radius: 6px;
+    border-radius: var(--raio-borda-pequeno);
 
     background: transparent;
     color: #8290a9;
 
     cursor: pointer;
 
-    transition: color 160ms ease;
+    transition: color var(--transicao-rapida);
 }
 
 .password-toggle:hover:not(:disabled) {
-    color: #40b9d0;
+    color: var(--cor-foco);
 }
 
 .password-toggle:disabled {
@@ -217,7 +211,7 @@
 }
 
 .password-toggle:focus-visible {
-    outline: 2px solid #40b9d0;
+    outline: 2px solid var(--cor-foco);
     outline-offset: 2px;
 }
 
@@ -232,7 +226,7 @@
 }
 
 .login-forgot button,
-.login-register button {
+.login-register a {
     padding: 0;
 
     border: none;
@@ -245,18 +239,18 @@
 
     cursor: pointer;
 
-    transition: color 160ms ease;
+    transition: color var(--transicao-rapida);
 }
 
 .login-forgot button:hover,
-.login-register button:hover {
+.login-register a:hover {
     color: #76d6e5;
     text-decoration: underline;
 }
 
 .login-forgot button:focus-visible,
-.login-register button:focus-visible {
-    outline: 2px solid #40b9d0;
+.login-register a:focus-visible {
+    outline: 2px solid var(--cor-foco);
     outline-offset: 3px;
 }
 
@@ -302,10 +296,10 @@
     margin-top: 1px;
     padding: 12px 16px;
 
-    border: 1px solid var(--primary);
-    border-radius: 8px;
+    border: 1px solid var(--cor-primaria-login);
+    border-radius: var(--raio-borda-medio);
 
-    background: var(--primary);
+    background: var(--cor-primaria-login);
     color: #ffffff;
 
     font: inherit;
@@ -315,14 +309,14 @@
     cursor: pointer;
 
     transition:
-        background 160ms ease,
-        border-color 160ms ease,
-        transform 160ms ease;
+        background var(--transicao-rapida),
+        border-color var(--transicao-rapida),
+        transform var(--transicao-rapida);
 }
 
 .login-submit:hover:not(:disabled) {
-    background: var(--secondary);
-    border-color: var(--secondary);
+    background: var(--cor-secundaria-login);
+    border-color: var(--cor-secundaria-login);
 }
 
 .login-submit:active:not(:disabled) {
@@ -336,7 +330,7 @@
 
 .login-submit:focus-visible,
 .google-login:focus-visible {
-    outline: 2px solid #40b9d0;
+    outline: 2px solid var(--cor-foco);
     outline-offset: 3px;
 }
 
@@ -401,7 +395,7 @@
     padding: 10px 14px;
 
     border: 1px solid #29344b;
-    border-radius: 8px;
+    border-radius: var(--raio-borda-medio);
 
     background: #111827;
     color: #e2e8f0;
@@ -413,8 +407,8 @@
     cursor: pointer;
 
     transition:
-        background 160ms ease,
-        border-color 160ms ease;
+        background var(--transicao-rapida),
+        border-color var(--transicao-rapida);
 }
 
 .google-login:hover:not(:disabled) {

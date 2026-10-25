@@ -1,50 +1,46 @@
-import { useState } from 'react';
-import { authService } from '../../services/authService.js';
-import logo from '../../assets/logo.png';
-import './LoginPage.css';
+import "./LoginPage.css";
+
+import { authService } from "../../services/authService.js";
+import { useState } from "react";
+import { Link } from "react-router";
+
+import Logo from "../../assets/logo.png";
 
 export default function LoginPage() {
-    const [username, setUsername] = useState(() =>
-        authService.getCurrentUser()
-    );
-    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState(() => authService.getCurrentUser());
+    const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [notice, setNotice] = useState('');
+    const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
 
     async function handleSubmit(event) {
         event.preventDefault();
 
         if (!username.trim() || !password) {
-            setError('Preencha o usuário e a senha.');
+            setError("Preencha o usuário e a senha.");
             return;
         }
 
         setLoading(true);
-        setError('');
-        setNotice('');
+        setError("");
+        setNotice("");
 
         try {
-            const result = await authService.login(
-                username.trim(),
-                password
-            );
+            const result = await authService.login(username.trim(), password);
 
             authService.saveSession(result);
 
             setUsername(authService.getCurrentUser());
         } catch (err) {
-            setError(
-                err.message || 'Não foi possível realizar o login.'
-            );
+            setError(err.message || "Não foi possível realizar o login.");
         } finally {
             setLoading(false);
         }
     }
 
     function showUnavailableFeature(feature) {
-        setError('');
+        setError("");
         setNotice(`${feature} ainda não está disponível.`);
     }
 
@@ -53,21 +49,17 @@ export default function LoginPage() {
             <section className="login-card">
                 <header className="login-heading">
                     <div className="login-logo">
-                        <img src={logo} alt="Logo da aplicação" />
+                        <img src={Logo} alt="Logo da aplicação" />
                     </div>
 
                     <h1>Bem-vindo</h1>
 
-                    <p>
-                        Entre na sua conta para continuar
-                    </p>
+                    <p>Entre na sua conta para continuar</p>
                 </header>
 
                 <form className="login-form" onSubmit={handleSubmit}>
                     <div className="login-field">
-                        <label htmlFor="usuario">
-                            Usuário
-                        </label>
+                        <label htmlFor="usuario">Usuário</label>
 
                         <input
                             id="usuario"
@@ -76,7 +68,7 @@ export default function LoginPage() {
                             placeholder="Digite seu usuário"
                             autoComplete="username"
                             value={username}
-                            onChange={event =>
+                            onChange={(event) =>
                                 setUsername(event.target.value)
                             }
                             disabled={loading}
@@ -85,19 +77,17 @@ export default function LoginPage() {
                     </div>
 
                     <div className="login-field">
-                        <label htmlFor="senha">
-                            Senha
-                        </label>
+                        <label htmlFor="senha">Senha</label>
 
                         <div className="login-password-wrapper">
                             <input
                                 id="senha"
                                 name="senha"
-                                type={showPassword ? 'text' : 'password'}
+                                type={showPassword ? "text" : "password"}
                                 placeholder="Digite sua senha"
                                 autoComplete="current-password"
                                 value={password}
-                                onChange={event =>
+                                onChange={(event) =>
                                     setPassword(event.target.value)
                                 }
                                 disabled={loading}
@@ -108,13 +98,13 @@ export default function LoginPage() {
                                 className="password-toggle"
                                 type="button"
                                 onClick={() =>
-                                    setShowPassword(value => !value)
+                                    setShowPassword((value) => !value)
                                 }
                                 disabled={loading}
                                 aria-label={
                                     showPassword
-                                        ? 'Ocultar senha'
-                                        : 'Mostrar senha'
+                                        ? "Ocultar senha"
+                                        : "Mostrar senha"
                                 }
                             >
                                 {showPassword ? (
@@ -154,7 +144,7 @@ export default function LoginPage() {
                         <button
                             type="button"
                             onClick={() =>
-                                showUnavailableFeature('A recuperação de senha')
+                                showUnavailableFeature("A recuperação de senha")
                             }
                         >
                             Esqueceu a senha?
@@ -173,21 +163,25 @@ export default function LoginPage() {
                         </p>
                     )}
 
-                    <button className="login-submit" type="submit" disabled={loading}>
+                    <button
+                        className="login-submit"
+                        type="submit"
+                        disabled={loading}
+                    >
                         {loading ? (
                             <>
                                 <span className="login-spinner" />
                                 Entrando...
                             </>
                         ) : (
-                            'Entrar'
+                            "Entrar"
                         )}
                     </button>
                 </form>
 
                 <div className="login-divider">
                     <span />
-                        <p>ou</p>
+                    <p>ou</p>
                     <span />
                 </div>
 
@@ -195,9 +189,7 @@ export default function LoginPage() {
                     className="google-login"
                     type="button"
                     disabled={loading}
-                    onClick={() =>
-                        showUnavailableFeature('O login com Google')
-                    }
+                    onClick={() => showUnavailableFeature("O login com Google")}
                 >
                     <svg
                         className="google-icon"
@@ -222,21 +214,12 @@ export default function LoginPage() {
                             d="M24 48c6.24 0 11.7-2.05 15.6-5.58l-7.57-5.87c-2.11 1.41-4.81 2.25-8.03 2.25-6.3 0-11.75-3.79-13.48-9.12l-7.98 6.2C6.4 42.66 14.64 48 24 48z"
                         />
                     </svg>
-
                     Entrar com Google
                 </button>
 
                 <p className="login-register">
                     Não tem uma conta?
-
-                    <button
-                        type="button"
-                        onClick={() =>
-                            showUnavailableFeature('O cadastro de conta')
-                        }
-                    >
-                        Criar conta
-                    </button>
+                    <Link to={"/register"}>Criar conta</Link>
                 </p>
             </section>
         </main>

@@ -1,11 +1,47 @@
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 /* =========================
-   CONFIGURAÇÕES GLOBAIS
+   VARIÁVEIS GLOBAIS
 ========================= */
 
 :root {
-    font-family: 'DM Sans', sans-serif;
+    /* Fontes */
+    --fonte-corpo: 'DM Sans', sans-serif;
+    --fonte-titulos: 'Manrope', sans-serif;
+
+    /* Cores de fundo */
+    --cor-fundo-principal: #060b13;
+    --cor-fundo-cartao: #0b1320;
+    --cor-fundo-campo: #080e18;
+
+    /* Cores de texto */
+    --cor-texto-principal: #ffffff;
+    --cor-texto-secundario: #7e8b9b;
+    --cor-texto-placeholder: #415065;
+
+    /* Cores de destaque */
+    --cor-primaria: #0047ff;
+    --cor-primaria-hover: #003cd6;
+    --cor-link: #2b7fff;
+    --cor-foco: #40b9d0;
+
+    /* Bordas */
+    --cor-borda: #1a283d;
+    --raio-borda-pequeno: 6px;
+    --raio-borda-medio: 8px;
+    --raio-borda-grande: 12px;
+
+    /* Gradiente dos ícones */
+    --cor-gradiente-inicio: #00e5ff;
+    --cor-gradiente-fim: #7a00ff;
+
+    /* Transições */
+    --transicao-rapida: 160ms ease;
+    --transicao-padrao: 200ms ease;
+
+    /* Configurações globais */
+    font-family: var(--fonte-corpo);
     color: #202938;
     background: #f4f6fa;
 
@@ -15,7 +51,9 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Padroniza o cálculo de largura e altura dos elementos */
+/* =========================
+   RESET GLOBAL
+========================= */
 
 *,
 *::before,
@@ -23,7 +61,9 @@
     box-sizing: border-box;
 }
 
-/* Estrutura básica da página */
+/* =========================
+   ESTRUTURA BÁSICA
+========================= */
 
 html {
     min-width: 320px;
@@ -36,7 +76,9 @@ body {
     min-height: 100vh;
 }
 
-/* Tipografia padrão dos elementos de formulário */
+/* =========================
+   ELEMENTOS DE FORMULÁRIO
+========================= */
 
 button,
 input,
@@ -44,8 +86,6 @@ select,
 textarea {
     font: inherit;
 }
-
-/* Comportamento padrão dos botões */
 
 button {
     cursor: pointer;
@@ -56,7 +96,9 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* Imagens responsivas por padrão */
+/* =========================
+   IMAGENS
+========================= */
 
 img {
     max-width: 100%;
