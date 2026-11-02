@@ -1,5 +1,4 @@
 
-
 CREATE TABLE "Perfil_Usuario" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	tipo VARCHAR(50) NOT NULL
@@ -129,7 +128,10 @@ INSERT INTO "Temperatura" (temperatura, dt_medicao, fk_casa)
 CREATE TABLE "Previsoes" (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     valor_previsto NUMERIC(10,2) NOT NULL,
+	periodo_referencia DATE,
     dt_previsao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	modelo VARCHAR(100),
+	erro_estimado DECIMAL(18, 2),
     fk_casa INTEGER NOT NULL,
 
     CONSTRAINT fk_previsoes_casa
@@ -137,8 +139,24 @@ CREATE TABLE "Previsoes" (
         REFERENCES "Casa" (id)
 );
 
-INSERT INTO "Previsoes" (valor_previsto, dt_previsao, fk_casa)
-			 VALUES (150.50, '2026-09-05 12:00:00', 1);
+INSERT INTO "Previsoes" (valor_previsto, periodo_referencia, dt_previsao, modelo, erro_estimado, fk_casa)
+			 VALUES (150.50, '2026-10-01', '2026-09-05 12:00:00', 'Regresso Linear', 5.25, 1);
+
+CREATE TABLE "Tarifa_Energia" (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	valor_kwh DECIMAL(18,2) NOT NULL,
+	bandeira VARCHAR(100) NOT NULL,
+	valor_adicional_kwh DECIMAL(18,2) DEFAULT 0,
+	dt_vigencia DATE NOT NULL,
+	fk_casa INTEGER NOT NULL,
+	
+	CONSTRAINT fk_tarifaEnergia_casa
+		FOREIGN KEY (fk_casa)
+		REFERENCES "Casa" (id)
+);
+
+INSERT INTO "Tarifa_Energia" (valor_kwh, bandeira, valor_adicional_kwh, dt_vigencia, fk_casa)
+					  VALUES (0.75, 'VERDE', 0.00, '2026-11-01', 1);
 
 CREATE TABLE "Prioridade" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -178,3 +196,24 @@ INSERT INTO "Recomendacoes" (titulo,
 						   2,
 						   1
 						   );
+
+CREATE TABLE "Chat_Mensagem" (
+	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	mensagem TEXT NOT NULL,
+	resposta TEXT NOT NULL,
+	intencao VARCHAR(100),
+	dt_mensagem TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	fk_usuario INTEGER NOT NULL,
+	fk_casa INTEGER NOT NULL,
+
+	CONSTRAINT fk_chatMensagem_usuario
+		FOREIGN KEY (fk_usuario)
+		REFERENCES "Usuario" (id),
+
+	CONSTRAINT fk_chatMensagem_casa
+		FOREIGN KEY (fk_casa)
+		REFERENCES "Casa" (id)
+);
+
+INSERT INTO "Chat_Mensagem" (mensagem, resposta, intencao, fk_usuario, fk_casa)
+					 VALUES ('Quanto consumi de energia hoje?', 'Hoje sua residência consumiu 8,5 kWh de energia elétrica.', 'CONSULTAR_CONSUMO', 1, 1);
