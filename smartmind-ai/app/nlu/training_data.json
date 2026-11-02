@@ -1,0 +1,50 @@
+[
+  {
+    "text": "Quanto gasto com meu chuveiro?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Calcule o consumo do ar condicionado",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quanto custa deixar a televisão ligada?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quero saber meu consumo mensal",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Quanto minha casa gastou de energia?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Qual será minha próxima conta de luz?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Preveja meus gastos com energia",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Como posso economizar energia?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quais aparelhos consomem mais?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quais dispositivos estão cadastrados?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Oi",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Olá, tudo bem?",
+    "intent": "saudacao"
+  }
+]
