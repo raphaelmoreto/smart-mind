@@ -1,0 +1,7 @@
+consumo_mes,media_3_meses,tendencia,temperatura_media,mes,bandeira,consumo_futuro
+280,270,10,25,1,0,295
+295,280,15,26,2,0,310
+310,295,15,27,3,0,305
+305,295,10,24,4,0,330
+330,310,20,25,5,0,345
+345,315,15,27,6,0,355
