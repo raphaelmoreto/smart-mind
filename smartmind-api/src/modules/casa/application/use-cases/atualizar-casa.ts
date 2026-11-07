@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.interface.js';
+import type { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.js';
 import { Response } from '../../../core/application/response/response.js';
 import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
 import { CasaInputDto } from '../../domain/dto/casa.dto.js';

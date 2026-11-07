@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { CasaEntity } from '../../domain/entities/casa.entity.js';
 import { CasaOutputDto } from '../../domain/dto/casa.dto.js';
-import { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.interface.js';
+import { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.js';
 
 @Injectable()
 export class CasaRepository implements ICasaRepository {

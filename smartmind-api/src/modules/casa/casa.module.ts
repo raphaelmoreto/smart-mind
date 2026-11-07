@@ -31,5 +31,8 @@ import { DeletarCasaUseCase } from './application/use-cases/deletar-casa.js';
         DeletarCasaUseCase,
         { provide: CASA_REPOSITORY, useClass: CasaRepository }
     ],
+    exports: [
+        CASA_REPOSITORY
+    ]
 })
 export class CasaModule {}

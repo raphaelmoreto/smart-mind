@@ -10,6 +10,7 @@ import { UsuarioModule } from './modules/usuario/usuario.module.js';
 import { CasaModule } from './modules/casa/casa.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { DispositivoModule } from './modules/dispositivos/dispositivos.module.js';
+import { ChatbotModule } from './modules/chatbot/chatbot.module.js';
 
 /*
 • @Module({}) - É UM DECORATOR QUE TRANSFORMA UM MÓDULO RECONHECIDO PELO NESTJS; 
@@ -32,7 +33,8 @@ import { DispositivoModule } from './modules/dispositivos/dispositivos.module.js
         UsuarioModule,
         CasaModule,
         AuthModule,
-        DispositivoModule
+        DispositivoModule,
+        ChatbotModule
     ],
     controllers: [],
     providers: [],

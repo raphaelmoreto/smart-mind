@@ -1,5 +1,6 @@
-# PARA EXECUTAR:
-# uvicorn app.main:app --reload --port 8000
+# PARA EXECUTAR: uvicorn app.main:app --reload --port 8000
+
+# SWAGGER: http://localhost:8000/docs
 
 from app.ml.predictor import predict_consumption
 from app.nlu.processor import process_message
@@ -23,7 +24,7 @@ class PredictionRequest(BaseModel):
     mes: int
     bandeira: str
 
-@app.get("health")
+@app.get("/health")
 def health():
     return {
         "status": "online",
@@ -46,6 +47,7 @@ def predict(request: PredictionRequest):
         return { "consumo_previsto": consumo }
     except (RuntimeError, KeyError) as error:
         raise HTTPException(status_code=400, detail=str(error))
+
 
 @app.post("/nlu/parse")
 def parse_message(request: MessageRequest):

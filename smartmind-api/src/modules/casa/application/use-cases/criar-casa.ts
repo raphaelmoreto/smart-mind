@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CasaEntity } from '../../domain/entities/casa.entity.js';
 import { CasaInputDto } from '../../domain/dto/casa.dto.js';
 import { CASA_REPOSITORY } from '../../casa.constants.js';
-import type { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.interface.js';
+import type { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.js';
 import { Response } from '../../../core/application/response/response.js';
 import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
 import { USUARIO_REPOSITORY } from '../../../usuario/usuario.constants.js';

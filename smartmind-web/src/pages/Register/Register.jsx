@@ -33,7 +33,6 @@ export default function Register() {
             alert("As senhas não coincidem!");
             return;
         }
-        console.log("Dados de cadastro:", formData);
     };
 
     return (
