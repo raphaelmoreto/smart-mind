@@ -113,7 +113,11 @@ def process_message(message):
 
     model = joblib.load(MODEL_PATH)
     normalized = normalize(message)
+
+    # O MODELO RECEBE UMA FRASE E IDENTIFICA A INTENÇÃO MAIS PROVÁVEL ENTRE AS CATEGORIAS
     intent = model.predict([normalized])[0]
+
+    # AQUI BUSCAMOS INFORMAÇÕES IMPORTANTES DA FRASE, COMO POTÊNCIA, TEMPO E DISPOSITIVO
     entities = extract_entities(message)
 
     return {

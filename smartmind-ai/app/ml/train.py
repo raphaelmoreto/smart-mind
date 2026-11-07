@@ -36,6 +36,7 @@ def train():
         random_state=42
     )
 
+    # "RandomForestRegressor" É UM ALGORITMO DE MACHINE LEARNING QUE CRIA VÁRIAS ÁRVORES DE DECISÃO PARA REALIZAR PREVISÕES NUMÉRICAS
     model = RandomForestRegressor(
         n_estimators=100,
         max_depth=5,
