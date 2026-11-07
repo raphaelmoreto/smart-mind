@@ -197,23 +197,6 @@ npm run build
 npm run preview
 ```
 
----
-
-## 📚 Documentação
-
-Documentações específicas podem ser adicionadas posteriormente:
-
-- arquitetura;
-- endpoints da API;
-- modelo do banco de dados;
-- autenticação;
-- regras de negócio;
-- componentes do frontend;
-- fluxos da aplicação;
-- testes.
-
----
-
 ## 👥 Desenvolvimento
 
 Este projeto pode ser desenvolvido de forma independente em cada aplicação:
