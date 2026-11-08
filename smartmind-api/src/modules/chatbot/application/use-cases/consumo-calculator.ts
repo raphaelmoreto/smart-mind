@@ -3,13 +3,13 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class ConsumoCalculatorUseCase {
 
-    calcular(potenciaWatts: number, horasPorDia: number, diasPorMes: number, tarifa: number) {
+    calcularConsumo(potenciaWatts: number, horasPorDia: number, diasPorMes: number) {
         const consumoKwh = (potenciaWatts / 1000) * horasPorDia * diasPorMes;
-        const custo = consumoKwh * tarifa;
+        return Number(consumoKwh.toFixed(2))
+    }
 
-        return {
-            consumoKwh,
-            custo,
-        };
+    calcularCusto(consumoKwh: number, tarifa: number) {
+        const custo = consumoKwh * tarifa;
+        return Number(custo.toFixed(2));
     }
 }

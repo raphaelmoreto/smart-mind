@@ -1,17 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,InternalServerErrorException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { isAxiosError } from 'axios';
 
 @Injectable()
 export class PythonAiClient {
-    constructor(private readonly httpService: HttpService) {}
+    private readonly baseUrl = 'http://localhost:8000';
+
+    constructor(
+        private readonly httpService: HttpService
+    ) {}
 
     async processarMensagem(mensagem: string) {
         try {
             const response = await firstValueFrom(
                 this.httpService.post(
-                    'http://localhost:8000/nlu/parse',
+                    `${this.baseUrl}/nlu/parse`,
                     {
                         message: mensagem,
                     },
@@ -21,26 +25,50 @@ export class PythonAiClient {
             return response.data;
 
         } catch (error: unknown) {
-            // if (isAxiosError(error)) {
-            //     console.log(
-            //         'Status HTTP:',
-            //         error.response?.status,
-            //     );
+            if (isAxiosError(error)) {
+                console.log(
+                    'Erro na comunicação com SmartMind AI: ',
+                    error.response?.data ?? error.message,
+                );
+            } else {
+                console.error('Erro inesperado ao comunicar com Python: ', error);
+            }
 
-            //     console.log(
-            //         'Erro retornado pelo Python:',
-            //         JSON.stringify(error.response?.data, null, 2),
-            //     );
+            throw new InternalServerErrorException(
+                'Não foi possível processar a mensagem pelo serviço de IA'
+            );
+        }
+    }
 
-            //     console.log(
-            //         'Payload enviado:',
-            //         error.config?.data,
-            //     );
-            // } else {
-            //     console.log('Erro inesperado:', error);
-            // }
+    async predictConsumption(data: {
+        consumo_mes: number;
+        media_3_meses: number;
+        tendencia: number;
+        temperatura_media: number;
+        mes: number;
+        bandeira: string;
+    }) {
+        try {
+            const response = await firstValueFrom(
+                this.httpService.post(
+                    `${this.baseUrl}/ml/predict-consumption`,
+                    data
+                )
+            );
 
-            // throw error;
+            return response.data;
+
+        } catch (error: unknown) {
+            if (isAxiosError(error)) {
+                console.error(
+                    'Erro na previsão de consumo:',
+                    error.response?.data ?? error.message
+                );
+            }
+
+            throw new InternalServerErrorException(
+                'Não foi possível realizar a previsão de consumo.'
+            );
         }
     }
 }

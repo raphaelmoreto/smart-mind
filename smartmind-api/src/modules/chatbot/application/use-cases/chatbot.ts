@@ -9,6 +9,7 @@ import type { IConsumoRepository } from '../../domain/interfaces/consumo.reposit
 import type { IChatHistoryRepository } from '../../domain/interfaces/chat-history.repository.interface.js';
 
 import { TARIFA_REPOSITORY, CONSUMO_REPOSITORY, CHAT_HISTORY_REPOSITORY } from '../../chatbot.constants.js';
+import { ChatbotInputDto } from '../../domain/dto/chatbot.dto.js';
 
 @Injectable()
 export class ChatbotUseCase {
@@ -28,74 +29,190 @@ export class ChatbotUseCase {
         private readonly chatHistoryRepository: IChatHistoryRepository,
     ) {}
 
-    async executar(casaId: string, mensagem: string) {
+    async executar(dto: ChatbotInputDto) {
 
-        console.log(mensagem);
+        // Identificar intenção e entidades usando Python.
+        const nlu = await this.pythonAiClient.processarMensagem(dto.message);
 
-        // 1. Identificar intenção e entidades usando Python.
-        const nlu = await this.pythonAiClient.processarMensagem(mensagem);
+        const nluEntities = nlu.entities ?? {};
 
-        // 2. Verificar a intenção identificada.
-        if (nlu.intent !== 'consultar_consumo') {
+        const entities = {
+            ...dto.context,
+            ...nluEntities,
+
+            // Normalização das entidades vindas do Python
+            device:
+                nluEntities.device ??
+                nluEntities.dispositivo ??
+                dto.context?.device,
+
+            power_watts:
+                nluEntities.power_watts ??
+                nluEntities.potencia_watts ??
+                dto.context?.power_watts,
+
+            hours_per_day:
+                nluEntities.hours_per_day ??
+                nluEntities.horas_por_dia ??
+                dto.context?.hours_per_day,
+
+            days_per_month:
+                nluEntities.days_per_month ??
+                nluEntities.dias_por_mes ??
+                dto.context?.days_per_month
+        };
+
+        const intent = nlu.intent;
+
+        if (intent === 'saudacao') {
             return {
-                resposta: 'Ainda não consigo responder a essa solicitação.',
-                intent: nlu.intent,
+                message: 'Olá! Sou o assistente SmartMind. Posso ajudar a analisar seu consumo de energia.',
+                intent
             };
         }
 
-        const dispositivo = nlu.entities.dispositivo;
-        const horasPorDia = Number(nlu.entities.horas_por_dia);
+        if (intent === 'consultar_consumo') {
+            return {
+                message: 'Vou precisar consultar o histórico de consumo da sua residência para responder.',
+                intent,
+                action: 'request_consumption_history'
+            };
+        }
 
-        // 3. Buscar informações do dispositivo.
-        // Exemplo temporário: substituir por consulta real.
-        const potenciaWatts = 1000;
-        const dispositivoId = 'dispositivo-exemplo';
+        if (intent === 'prever_fatura') {
+            return {
+                message: 'Para prever sua próxima conta de energia, preciso analisar seu histórico de consumo.',
+                intent,
+                action: 'request_consumption_history'
+            };
+        }
 
-        // 4. Buscar tarifa da casa.
-        const tarifa = await this.tarifaRepository.buscarTarifaAtual(casaId);
+        if (intent === 'consultar_dispositivos') {
+            return {
+                message: 'Vou consultar os dispositivos cadastrados na sua residência.',
+                intent,
+                action: 'request_devices'
+            };
+        }
 
-        // 5. Calcular consumo e custo.
-        const resultado = this.consumoCalculator.calcular(
-            potenciaWatts,
-            horasPorDia,
-            30,
-            tarifa,
-        );
+        if (intent === 'buscar_economia') {
+            const device = entities.device;
 
-        // 6. Salvar consumo.
-        await this.consumoRepository.salvarConsumo(
-            casaId,
-            dispositivoId,
-            resultado.consumoKwh,
-            resultado.custo,
-        );
+            if (!device) {
+                return {
+                    message: 'Qual dispositivo você deseja analisar?',
+                    intent,
+                    entities
+                };
+            }
 
-        // 7. Gerar sugestões.
-        const sugestoes = this.economiaUseCase.sugerirEconomia(
-            dispositivo,
-            horasPorDia,
-        );
+            const suggestions = this.economiaUseCase.sugerirEconomia(
+                device,
+                0,
+                Number(entities.hours_per_day ?? 0)
+            );
 
-        // 8. Montar resposta.
-        const resposta =
-            `O ${dispositivo} consome aproximadamente ` +
-            `${resultado.consumoKwh.toFixed(2)} kWh por mês. ` +
-            `O custo estimado é R$ ${resultado.custo.toFixed(2)}.`;
+            return {
+                message: 'Encontrei algumas sugestões para você economizar energia.',
+                intent,
+                suggestions,
+                entities
+            };
+        }
 
-        // 9. Salvar histórico.
-        await this.chatHistoryRepository.salvarMensagem(
-            casaId,
-            mensagem,
-            resposta,
-        );
+        if (intent === 'calcular_consumo') {
+            const missing: string[] = [];
+
+            if (!entities.device) {
+                missing.push('dispositivo');
+            }
+
+            if (!entities.power_watts) {
+                missing.push('potência em watts');
+            }
+
+            if (!entities.hours_per_day) {
+                missing.push('horas de utilização por dia');
+            }
+
+            if (missing.length > 0) {
+                return {
+                    message: `Para calcular o consumo, preciso saber: ${missing.join(', ')}.`,
+                    intent,
+                    entities,
+                    missing
+                };
+            }
+
+            const days = Number(
+                entities.days_per_month ?? 30
+            );
+
+            const tariff = Number(
+                entities.tariff ??
+                await this.tarifaRepository.buscarTarifaAtual(dto.casaId)
+            );
+
+            const power = Number(entities.power_watts);
+            const hours = Number(entities.hours_per_day);
+
+            if (
+                !Number.isFinite(power) ||
+                !Number.isFinite(hours) ||
+                !Number.isFinite(days) ||
+                !Number.isFinite(tariff) ||
+                power <= 0 ||
+                hours <= 0 ||
+                hours > 24 ||
+                days < 1 ||
+                days > 31 ||
+                tariff <= 0
+            ) {
+                return {
+                    message: 'Os dados informados para calcular o consumo são inválidos.',
+                    intent
+                };
+            }
+
+            // Calcular consumo mensal.
+            const consumption =
+                this.consumoCalculator.calcularConsumo(
+                    power,
+                    hours,
+                    days
+                );
+
+            // Calcular custo mensal.
+            const cost =
+                this.consumoCalculator.calcularCusto(
+                    consumption,
+                    tariff
+                );
+
+            // Gerar sugestões.
+            const suggestions =
+                this.economiaUseCase.sugerirEconomia(
+                    entities.device,
+                    consumption,
+                    hours
+                );
+
+            return {
+                message: `O ${entities.device} possui consumo estimado de ${consumption} kWh por mês, representando aproximadamente R$ ${cost.toFixed(2)}.`,
+                intent,
+                entities,
+                result: {
+                    consumption_kwh: consumption,
+                    monthly_cost: cost,
+                    tariff
+                },
+                suggestions
+            };
+        }
 
         return {
-            intent: nlu.intent,
-            dispositivo,
-            consumoKwh: resultado.consumoKwh,
-            custo: resultado.custo,
-            sugestoes,
-            resposta,
+            message: 'Ainda não consigo executar essa operação. Poderia explicar de outra maneira?',
+            intent: intent ?? 'unknown'
         };
     }
 }

@@ -49,6 +49,10 @@ def predict(request: PredictionRequest):
         raise HTTPException(status_code=400, detail=str(error))
 
 
+# EXEMPLO TESTE:
+# {
+#     "message": "Quanto gasto com meu chuveiro de 5500 watts ligado por 30 minutos por dia?"
+# }
 @app.post("/nlu/parse")
 def parse_message(request: MessageRequest):
     if not request.message.strip():

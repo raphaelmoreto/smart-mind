@@ -11,10 +11,7 @@ export class ChatbotController extends BaseController {
     ) { super(); }
 
     @Post('mensagem')
-    async enviarMensagem(@Body() body: ChatbotInputDto) {
-        return this.chatbotUseCase.executar(
-            body.casaId,
-            body.message,
-        );
+    async enviarMensagem(@Body() dto: ChatbotInputDto) {
+        return this.chatbotUseCase.executar(dto);
     }
 }

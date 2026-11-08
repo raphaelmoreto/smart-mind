@@ -3,6 +3,7 @@ import re
 import unicodedata
 import joblib
 
+from functools import lru_cache
 from pathlib import Path
 
 from sklearn.pipeline import Pipeline
@@ -13,15 +14,13 @@ BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "nlu_model.pkl"
 DATA_PATH = BASE_DIR / "training_data.json"
 
-def normalize(text):
+def normalize(text: str) -> str:
     text = text.lower().strip()
     text = unicodedata.normalize("NFD", text)
-    text = "".join(
-        c for c in text
-        if unicodedata.category(c) != "Mn"
+    return "".join(
+        char for char in text
+        if unicodedata.category(char) != "Mn"
     )
-
-    return text
 
 
 def train_model():
@@ -48,7 +47,15 @@ def train_model():
     return model
 
 
-def extract_entities(message):
+@lru_cache(maxsize=1)
+def load_model():
+    if not MODEL_PATH.exists():
+        train_model()
+
+    return joblib.load(MODEL_PATH)
+
+
+def extract_entities(message: str):
     text = normalize(message)
     entities = {}
 
@@ -79,22 +86,22 @@ def extract_entities(message):
         if unit.startswith("min"):
             value /= 60
 
-        entities["horas_por_dia"] = value
+        entities["hours_per_day"] = value
 
-    devices = [
-        "ar condicionado",
-        "chuveiro",
-        "geladeira",
-        "televisao",
-        "televisão",
-        "microondas",
-        "micro-ondas",
-        "ventilador",
-        "computador"
-    ]
-    for device in devices:
+    devices = {
+        "ar condicionado": "ar-condicionado",
+        "chuveiro": "chuveiro",
+        "geladeira": "geladeira",
+        "televisao": "televisao",
+        "microondas": "microondas",
+        "micro ondas": "microondas",
+        "ventilador": "ventilador",
+        "computador": "computador"
+    }
+
+    for device, normalized_device in devices.items():
         if normalize(device) in text:
-            entities["dispositivo"] = normalize(device)
+            entities["device"] = normalized_device
             break
 
     days = re.search(
@@ -102,16 +109,13 @@ def extract_entities(message):
         text
     )
     if days:
-        entities["dias_por_mes"] = int(days.group(1))
+        entities["days_per_month"] = int(days.group(1))
 
     return entities
 
 
-def process_message(message):
-    if not MODEL_PATH.exists():
-        train_model()
-
-    model = joblib.load(MODEL_PATH)
+def process_message(message: str):
+    model = load_model()
     normalized = normalize(message)
 
     # O MODELO RECEBE UMA FRASE E IDENTIFICA A INTENÇÃO MAIS PROVÁVEL ENTRE AS CATEGORIAS
