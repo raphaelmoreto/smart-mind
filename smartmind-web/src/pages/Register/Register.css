@@ -107,11 +107,9 @@
 ========================= */
 
 .form-grid {
-    width: 100%;
-
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 19px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 
 .form-group {
@@ -169,6 +167,35 @@
 .form-group input:disabled {
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+.form-message {
+    grid-column: 1 / -1;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.campo-nome {
+    grid-column: 1 / -1;
+}
+
+.error-message {
+    color: #ffb4b4;
+    background: rgba(220, 38, 38, 0.12);
+    border: 1px solid rgba(220, 38, 38, 0.35);
+}
+
+.success-message {
+    color: #86efac;
+    background: rgba(22, 163, 74, 0.12);
+    border: 1px solid rgba(22, 163, 74, 0.35);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* =========================

@@ -1,15 +1,21 @@
 import "./Register.css";
 
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
+import { usuarioService } from '../../services/usuarioService.js';
 import Logo from "../../assets/logo.png";
 
 export default function Register() {
+    const navigate = useNavigate();
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+
     const [formData, setFormData] = useState({
         nome: "",
         email: "",
-        celular: "",
         usuario: "",
         senha: "",
         confirmarSenha: "",
@@ -27,11 +33,42 @@ export default function Register() {
         }));
     };
 
-    const handleSubmit = (e) => {
+    async function handleSubmit(e) {
         e.preventDefault();
+        
+        setError("");
+        setSuccess("");
+
         if (formData.senha !== formData.confirmarSenha) {
             alert("As senhas não coincidem!");
             return;
+        }
+
+        if (!formData.aceitaTermos) {
+            setError("VOCÊ PRECISA ACEITAR OS TERMOS DE USO.")
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            await usuarioService.cadastrar({
+                nome: formData.nome.trim(),
+                usuario: formData.usuario.trim(),
+                email: formData.email.trim(),
+                senha: formData.senha.trim(),
+                fk_perfil: 2
+            });
+
+            setSuccess("CADASTRO REALIZADO COM SUCESSO");
+
+            setTimeout(() => {
+                navigate('/');
+            }, 1800)
+        } catch (error) {
+            setError(error.message || "NÃO FOI POSSÍVEL REALIZAR O CADASTRO");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -48,7 +85,19 @@ export default function Register() {
 
                 {/* Formulário */}
                 <form onSubmit={handleSubmit} className="form-grid">
-                    <div className="form-group">
+                    {error && (
+                        <div className="form-message error-message" role="alert">
+                            {error}
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="form-message success-message" role="status">
+                            {success}
+                        </div>
+                    )}
+
+                    <div className="form-group campo-nome">
                         <label>Nome completo</label>
                         <input
                             type="text"
@@ -69,17 +118,6 @@ export default function Register() {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Celular</label>
-                        <input
-                            type="tel"
-                            name="celular"
-                            placeholder="(XX) XXXXX-XXXX"
-                            value={formData.celular}
-                            onChange={handleChange}
                         />
                     </div>
 
@@ -210,8 +248,8 @@ export default function Register() {
                         </label>
                     </div>
 
-                    <button type="submit" className="btn-primary">
-                        Cadastrar
+                    <button type="submit" className="btn-primary" disabled={loading}>
+                        { loading ? "Cadastrando..." : "Cadastrar" }
                     </button>
                 </form>
 

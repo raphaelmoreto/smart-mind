@@ -2,12 +2,14 @@ import "./LoginPage.css";
 
 import { authService } from "../../services/authService.js";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import Logo from "../../assets/logo.png";
 
 export default function LoginPage() {
-    const [username, setUsername] = useState(() => authService.getCurrentUser());
+    const navigate = useNavigate();
+
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function LoginPage() {
 
             authService.saveSession(result);
 
-            setUsername(authService.getCurrentUser());
+            navigate("/home");
         } catch (err) {
             setError(err.message || "Não foi possível realizar o login.");
         } finally {
