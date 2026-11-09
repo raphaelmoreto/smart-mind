@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import { chatbotService } from '../../services/chatbotService.js';
 
@@ -8,6 +9,8 @@ import ChatMessage from '../../components/chatbot/ChatMessage.jsx';
 import './Chatbot.css';
 
 function Chatbot({ casaId }) {
+    const navigate = useNavigate();
+
     const [mensagens, setMensagens] = useState([
         {
             role: 'assistant',
@@ -62,33 +65,76 @@ function Chatbot({ casaId }) {
         }
     }
 
+    function voltarParaHome() {
+        navigate("/home");
+    }
+
     return (
-        <div className="chatbot-container">
-            <header className="chatbot-header">
-                <h1>SmartMind</h1>
-                <p>Assistente de eficiência energética</p>
-            </header>
+        <main className="chatbot-page">
+            <section className="chatbot-container">
+                <header className="chatbot-header">
+                    <div className="chatbot-brand">
+                        <div className="chatbot-avatar">
+                            <span>SM</span>
+                        </div>
 
-            <main className="chatbot-messages">
-                {mensagens.map((mensagem, index) => (
-                    <ChatMessage key={index} message={mensagem} />
-                ))}
+                        <div className="chatbot-heading">
+                            <h1>SmartMind</h1>
+                            <p>
+                                <span className="chatbot-status"></span>
+                                Assistente de eficiência energética
+                            </p>
+                        </div>
+                    </div>
 
-                {carregando && (
-                    <div className="chat-loading">
-                        Analisando sua mensagem...
+                    <button className="chatbot-back-button" type="button" onClick={voltarParaHome}>
+                        <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M19 12H5M12 19l-7-7 7-7"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+
+                        <span>Voltar para Home</span>
+                    </button>
+                </header>
+
+                <main className="chatbot-messages">
+                    {mensagens.map((mensagem, index) => (
+                        <ChatMessage
+                            key={index}
+                            message={mensagem}
+                        />
+                    ))}
+
+                    {carregando && (
+                        <div className="chat-loading">
+                            <span className="chat-loading-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </span>
+
+                            Analisando sua mensagem...
+                        </div>
+                    )}
+                </main>
+
+                {erro && (
+                    <div className="chat-error" role="alert">
+                        {erro}
                     </div>
                 )}
-            </main>
-
-            {erro && (
-                <div className="chat-error" role="alert">
-                    {erro}
-                </div>
-            )}
-
-            <ChatInput onSend={enviarMensagem} disabled={carregando} />
-        </div>
+                <ChatInput onSend={enviarMensagem} disabled={carregando} />
+            </section>
+        </main>
     );
 }
 
