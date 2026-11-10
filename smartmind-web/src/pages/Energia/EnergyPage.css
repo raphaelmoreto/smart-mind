@@ -1,0 +1,83 @@
+.energy-chart-heading {
+  align-items: flex-start;
+}
+
+.energy-segmented {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-raised);
+}
+
+.energy-segmented button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 10px var(--fonte-corpo), sans-serif;
+  cursor: pointer;
+}
+
+.energy-segmented button.selected {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.energy-chart-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.energy-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.energy-chart-legend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.energy-chart-legend strong {
+  color: var(--text);
+}
+
+.energy-calculator {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.energy-formula {
+  display: grid;
+  gap: 7px;
+  padding: 13px;
+  border-radius: var(--energy-radius-sm);
+  background: var(--surface-raised);
+}
+
+.energy-formula span,
+.energy-formula small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.energy-formula strong {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.energy-table tfoot th {
+  color: var(--text);
+  font-weight: 700;
+}

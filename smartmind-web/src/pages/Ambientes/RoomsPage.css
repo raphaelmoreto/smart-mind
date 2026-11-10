@@ -1,0 +1,29 @@
+.energy-room-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  place-items: center;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.energy-room-card h3 {
+  font-size: 18px;
+}
+
+.energy-room-card p {
+  min-height: 42px;
+  line-height: 1.55;
+}
+
+.energy-room-card {
+  transition: transform var(--transicao-padrao), border-color var(--transicao-padrao);
+}
+
+.energy-room-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+}

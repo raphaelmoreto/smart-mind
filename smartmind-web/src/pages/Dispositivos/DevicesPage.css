@@ -1,0 +1,21 @@
+.energy-checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.energy-checkbox-field input {
+  accent-color: var(--accent);
+}
+
+.energy-form-error {
+  margin: 12px 0 0;
+  color: #ff9e91;
+  font-size: 11px;
+}
+
+.energy-small-action.danger {
+  color: #ff9e91;
+}
