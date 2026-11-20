@@ -45,7 +45,7 @@ def predict(request: PredictionRequest):
         )
 
         return { "consumo_previsto": consumo }
-    except (RuntimeError, KeyError) as error:
+    except (RuntimeError, KeyError, ValueError) as error:
         raise HTTPException(status_code=400, detail=str(error))
 
 

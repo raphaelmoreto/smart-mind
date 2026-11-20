@@ -1,6 +1,7 @@
 import joblib
 from pathlib import Path
 import pandas as pd
+from functools import lru_cache
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -21,6 +22,10 @@ BANDEIRAS = {
     "vermelha": 2
 }
 
+@lru_cache(maxsize=1)
+def _load_model():
+    return joblib.load(MODEL_PATH)
+
 # A FUNÇÃO TRANSFORMA A BANDEIRA EM UM VALOR NÚMERICO PARA QUE O MODELO POSSA PROCESSÁ-LA
 def predict_consumption(consumo_mes, media_3_meses, tendencia, temperatura_media, mes, bandeira):
     if not MODEL_PATH.exists():
@@ -30,7 +35,7 @@ def predict_consumption(consumo_mes, media_3_meses, tendencia, temperatura_media
     if bandeira_normalizada not in BANDEIRAS:
         raise ValueError(f"Bandeira tarifária inválida: {bandeira}")
 
-    model = joblib.load(MODEL_PATH)
+    model = _load_model()
 
     data = pd.DataFrame([{
         "consumo_mes": consumo_mes,
