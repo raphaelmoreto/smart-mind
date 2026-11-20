@@ -24,6 +24,12 @@ export class HttpClient {
                     errorBody.mensagem ||
                     errorBody.error ||
                     message;
+
+                if (Array.isArray(errorBody.notificacoes) && errorBody.notificacoes.length) {
+                    message += ': ' + errorBody.notificacoes
+                        .map((notificacao) => notificacao.mensagem)
+                        .join('; ');
+                }
             } catch {
                 // A resposta pode não conter JSON.
             }

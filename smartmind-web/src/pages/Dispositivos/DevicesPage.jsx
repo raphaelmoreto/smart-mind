@@ -1,43 +1,75 @@
-import { useEffect, useState } from "react";
-import {
-  MetricCard,
-  FormField,
-  Modal,
-  PageHeading,
-} from "../../components/energy/EnergyComponents.jsx";
-import {
-  createDispositivo,
-  deleteDispositivo,
-  getAmbientes,
-  getDispositivos,
-  updateDispositivo,
-} from "../../services/energyApi.js";
-import { getDeviceType } from "../../components/energy/devicePresentation.js";
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router";
+import { FormField, MetricCard, Modal, PageHeading } from "../../components/energy/EnergyComponents.jsx";
+import { useCasaAtual } from "../../hooks/useCasaAtual.js";
+import { dispositivoService } from "../../services/dispositivo-service.js";
 import "./DevicesPage.css";
+
+const TAMANHO_MAXIMO_FOTO = 1.5 * 1024 * 1024; // 1,5 MB
 
 const emptyForm = {
   nome: "",
   foto: "",
-  ambienteId: "",
+  fk_tipoDispositivo: "",
   potenciaW: "",
-  ativo: true,
+  horasUsoDia: "4",
+  ativo: false,
 };
 
-function DeviceForm({ device, rooms, onCancel, onSubmit }) {
-  const [form, setForm] = useState(device || emptyForm);
+// API -> TELA
+function daApi(d) {
+  return {
+    id: d.id,
+    nome: d.nome,
+    tipo: d.tipo,
+    fk_tipoDispositivo: d.fk_tipoDispositivo,
+    potenciaW: Number(d.potencia_watts ?? 0),
+    horasUsoDia: Number(d.horas_uso_dia ?? 0),
+    ativo: Boolean(d.ligado),
+    foto: d.foto_url ?? "",
+  };
+}
+
+// TELA -> API
+function paraApi(form, casaId) {
+  return {
+    nome: form.nome.trim(),
+    fk_tipoDispositivo: Number(form.fk_tipoDispositivo),
+    fk_casa: casaId,
+    potencia_watts: Number(form.potenciaW),
+    horas_uso_dia: Number(form.horasUsoDia),
+    ligado: Boolean(form.ativo),
+    foto_url: form.foto?.trim() || undefined,
+  };
+}
+
+const kwhMes = (device) => (device.potenciaW * device.horasUsoDia * 30) / 1000;
+
+function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
+  const [form, setForm] = useState(
+    device
+      ? {
+          ...device,
+          fk_tipoDispositivo: String(device.fk_tipoDispositivo),
+          potenciaW: String(device.potenciaW),
+          horasUsoDia: String(device.horasUsoDia),
+        }
+      : emptyForm
+  );
   const [error, setError] = useState("");
 
   function updateField(event) {
     const { name, value, type, checked } = event.target;
-    setForm((current) => ({
-      ...current,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
   function uploadPhoto(event) {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (file.size > TAMANHO_MAXIMO_FOTO) {
+      setError("A foto deve ter no máximo 1,5 MB.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => setForm((current) => ({ ...current, foto: reader.result }));
     reader.readAsDataURL(file);
@@ -45,104 +77,71 @@ function DeviceForm({ device, rooms, onCancel, onSubmit }) {
 
   function submit(event) {
     event.preventDefault();
-    if (!form.nome.trim() || !form.ambienteId || Number(form.potenciaW) <= 0) {
-      setError("Preencha nome, ambiente e uma potência válida.");
+    const horas = Number(form.horasUsoDia);
+    if (!form.nome.trim() || !form.fk_tipoDispositivo || Number(form.potenciaW) <= 0) {
+      setError("Preencha nome, tipo e uma potência válida.");
       return;
     }
-    onSubmit({
-      nome: form.nome.trim(),
-      foto: form.foto.trim(),
-      ambienteId: form.ambienteId,
-      potenciaW: Number(form.potenciaW),
-      ativo: Boolean(form.ativo),
-      horasUsoDia: Number(form.horasUsoDia || device?.horasUsoDia || 4),
-      tipo: device?.tipo || getDeviceType(form.nome),
-      detalhe: device?.detalhe || (form.ativo ? "Ligado" : "Desligado"),
-      intensidade: Number(device?.intensidade ?? (form.ativo ? 65 : 0)),
-    });
+    if (!Number.isFinite(horas) || horas < 0 || horas > 24) {
+      setError("As horas de uso por dia devem estar entre 0 e 24.");
+      return;
+    }
+    setError("");
+    onSubmit(form);
   }
 
   return (
     <form onSubmit={submit}>
       <div className="energy-form-grid">
         <FormField label="Nome do dispositivo" htmlFor="device-name">
-          <input
-            className="energy-input"
-            id="device-name"
-            name="nome"
-            value={form.nome}
-            onChange={updateField}
-            placeholder="Ex.: Ar-condicionado"
-            required
-          />
+          <input className="energy-input" id="device-name" name="nome" value={form.nome} onChange={updateField} placeholder="Ex.: Ar-condicionado do quarto" required />
         </FormField>
-        <FormField label="Ambiente" htmlFor="device-room">
-          <select
-            className="energy-select"
-            id="device-room"
-            name="ambienteId"
-            value={form.ambienteId}
-            onChange={updateField}
-            required
-          >
-            <option value="">Selecione um ambiente</option>
-            {rooms.map((room) => (
-              <option key={room.id} value={room.id}>
-                {room.nome}
-              </option>
+
+        <FormField label="Tipo" htmlFor="device-type">
+          <select className="energy-select" id="device-type" name="fk_tipoDispositivo" value={form.fk_tipoDispositivo} onChange={updateField} required>
+            <option value="">Selecione o tipo</option>
+            {tipos.map((tipo) => (
+              <option key={tipo.id} value={tipo.id}>{tipo.tipo}</option>
             ))}
           </select>
         </FormField>
+
         <FormField label="Potência (W)" htmlFor="device-power">
-          <input
-            className="energy-input"
-            id="device-power"
-            name="potenciaW"
-            type="number"
-            min="1"
-            value={form.potenciaW}
-            onChange={updateField}
-            placeholder="Ex.: 1200"
-            required
-          />
+          <input className="energy-input" id="device-power" name="potenciaW" type="number" min="1" step="0.1" value={form.potenciaW} onChange={updateField} placeholder="Ex.: 1200" required />
         </FormField>
+
+        <FormField label="Uso por dia (horas)" htmlFor="device-hours">
+          <input className="energy-input" id="device-hours" name="horasUsoDia" type="number" min="0" max="24" step="0.25" value={form.horasUsoDia} onChange={updateField} required />
+        </FormField>
+
         <FormField label="Foto por URL" htmlFor="device-photo">
           <input
             className="energy-input"
             id="device-photo"
             name="foto"
             type="url"
-            value={form.foto}
+            value={form.foto.startsWith("data:") ? "" : form.foto}
             onChange={updateField}
             placeholder="https://..."
           />
         </FormField>
-        <FormField label="Enviar foto" htmlFor="device-upload" className="full">
-          <input
-            className="energy-input"
-            id="device-upload"
-            type="file"
-            accept="image/*"
-            onChange={uploadPhoto}
-          />
+
+        <FormField label="Ou envie uma foto" htmlFor="device-upload">
+          <input className="energy-input" id="device-upload" type="file" accept="image/*" onChange={uploadPhoto} />
         </FormField>
+
         <label className="energy-checkbox-field">
-          <input
-            type="checkbox"
-            name="ativo"
-            checked={Boolean(form.ativo)}
-            onChange={updateField}
-          />
+          <input type="checkbox" name="ativo" checked={Boolean(form.ativo)} onChange={updateField} />
           Dispositivo ligado
         </label>
       </div>
-      {error && <p className="energy-form-error" role="alert">{error}</p>}
+
+      {(error || erroApi) && <p className="energy-form-error" role="alert">{error || erroApi}</p>}
+
       <div className="energy-form-actions">
-        <button className="energy-button-secondary" type="button" onClick={onCancel}>
-          Cancelar
-        </button>
-        <button className="energy-button" type="submit">
-          Salvar dispositivo
+        <button className="energy-button-secondary" type="button" onClick={onCancel} disabled={salvando}>Cancelar</button>
+        <button className="energy-button" type="submit" disabled={salvando}>
+          {salvando ? "Salvando..." : "Salvar dispositivo"}
         </button>
       </div>
     </form>
@@ -150,51 +149,109 @@ function DeviceForm({ device, rooms, onCancel, onSubmit }) {
 }
 
 export default function DevicesPage() {
+  const { casaAtual, carregando: carregandoCasa } = useCasaAtual();
+  const casaId = casaAtual?.id;
+
   const [devices, setDevices] = useState([]);
-  const [rooms, setRooms] = useState([]);
+  const [tipos, setTipos] = useState([]);
   const [modalDevice, setModalDevice] = useState(null);
   const [deviceToDelete, setDeviceToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [salvando, setSalvando] = useState(false);
   const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+
+  const carregar = useCallback(async () => {
+    if (!casaId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const [lista, listaTipos] = await Promise.all([
+        dispositivoService.listarPorCasa(casaId),
+        dispositivoService.buscarTipos(),
+      ]);
+      setDevices((lista ?? []).map(daApi));
+      setTipos(listaTipos ?? []);
+    } catch (e) {
+      setError(e.message || "Não foi possível carregar os dispositivos.");
+    } finally {
+      setLoading(false);
+    }
+  }, [casaId]);
 
   useEffect(() => {
-    Promise.all([getDispositivos(), getAmbientes()]).then(([deviceData, roomData]) => {
-      setDevices(deviceData);
-      setRooms(roomData);
-      setLoading(false);
-    });
-  }, []);
+    if (!carregandoCasa) carregar();
+  }, [carregandoCasa, carregar]);
+
+  // A MENSAGEM DE SUCESSO SOME SOZINHA DEPOIS DE 4 SEGUNDOS
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   const activeDevices = devices.filter((device) => device.ativo);
-  const currentPower = activeDevices.reduce((sum, device) => sum + Number(device.potenciaW), 0);
-  const roomName = (roomId) => rooms.find((room) => room.id === roomId)?.nome || "Sem ambiente";
+  const currentPower = activeDevices.reduce((sum, device) => sum + device.potenciaW, 0);
+  const consumoMensal = devices.reduce((sum, device) => sum + kwhMes(device), 0);
 
-  async function saveDevice(payload) {
-    if (modalDevice?.id) {
-      const saved = await updateDispositivo(modalDevice.id, payload);
-      setDevices((current) => current.map((device) => device.id === saved.id ? saved : device));
-      setNotice("As alterações do dispositivo foram salvas.");
-    } else {
-      const saved = await createDispositivo(payload);
-      setDevices((current) => [...current, saved]);
-      setNotice("Dispositivo adicionado com sucesso.");
+  async function saveDevice(form) {
+    setSalvando(true);
+    setError("");
+    try {
+      const payload = paraApi(form, casaId);
+      if (modalDevice?.id) {
+        await dispositivoService.atualizar(modalDevice.id, payload);
+        setNotice("As alterações do dispositivo foram salvas.");
+      } else {
+        await dispositivoService.criar(payload);
+        setNotice("Dispositivo adicionado com sucesso.");
+      }
+      setModalDevice(null);
+      await carregar();
+    } catch (e) {
+      setError(e.message || "Não foi possível salvar o dispositivo.");
+    } finally {
+      setSalvando(false);
     }
-    setModalDevice(null);
   }
 
   async function confirmRemoveDevice() {
     if (!deviceToDelete) return;
-
-    await deleteDispositivo(deviceToDelete.id);
-    setDevices((current) => current.filter((item) => item.id !== deviceToDelete.id));
-    setDeviceToDelete(null);
-    setNotice("Dispositivo removido.");
+    try {
+      await dispositivoService.remover(deviceToDelete.id);
+      setDevices((current) => current.filter((item) => item.id !== deviceToDelete.id));
+      setNotice("Dispositivo removido.");
+    } catch (e) {
+      setError(e.message || "Não foi possível remover o dispositivo.");
+    } finally {
+      setDeviceToDelete(null);
+    }
   }
 
+  // ATUALIZAÇÃO OTIMISTA: MUDA NA TELA NA HORA E VOLTA SE A API FALHAR
   async function toggleDevice(device) {
-    const payload = { ...device, ativo: !device.ativo };
-    await updateDispositivo(device.id, payload);
-    setDevices((current) => current.map((item) => item.id === device.id ? payload : item));
+    const novoEstado = !device.ativo;
+    setDevices((current) => current.map((item) => (item.id === device.id ? { ...item, ativo: novoEstado } : item)));
+    try {
+      await dispositivoService.alterarEstado(device.id, novoEstado);
+    } catch (e) {
+      setDevices((current) => current.map((item) => (item.id === device.id ? { ...item, ativo: device.ativo } : item)));
+      setError(e.message || "Não foi possível alterar o estado do dispositivo.");
+    }
+  }
+
+  if (!carregandoCasa && !casaAtual) {
+    return (
+      <main className="energy-page">
+        <PageHeading eyebrow="GERENCIAMENTO DA CASA" title="Dispositivos" description="Acompanhe a potência e o estado dos aparelhos da sua casa." />
+        <div className="energy-empty">
+          Você ainda não tem uma casa cadastrada. <Link to="/configuracoes">Cadastre em Configurações</Link> para adicionar dispositivos.
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -202,27 +259,24 @@ export default function DevicesPage() {
       <PageHeading
         eyebrow="GERENCIAMENTO DA CASA"
         title="Dispositivos"
-        description="Acompanhe a potência e o estado dos aparelhos da sua casa."
+        description={`Aparelhos de ${casaAtual?.nome ?? "sua casa"}.`}
         action={
-          <button
-            className="energy-button"
-            type="button"
-            onClick={() => setModalDevice({ ...emptyForm })}
-          >
+          <button className="energy-button" type="button" onClick={() => { setError(""); setModalDevice({ ...emptyForm }); }}>
             <span aria-hidden="true">+</span> Adicionar dispositivo
           </button>
         }
       />
 
       <section className="energy-metrics" aria-label="Resumo dos dispositivos">
-        <MetricCard label="Consumo ligado agora" value={currentPower.toLocaleString("pt-BR") + " W"} note="Potência nominal dos aparelhos ligados" icon="ϟ" />
-        <MetricCard label="Total de dispositivos" value={String(devices.length).padStart(2, "0")} note="Cadastrados na sua casa" icon="▦" />
-        <MetricCard label="Dispositivos ligados" value={String(activeDevices.length).padStart(2, "0")} note="Podem ser ligados ou desligados aqui" icon="◉" />
+        <MetricCard label="Consumo ligado agora" value={currentPower.toLocaleString("pt-BR") + " W"} note="Potência dos aparelhos ligados" icon="ϟ" />
+        <MetricCard label="Estimativa mensal" value={consumoMensal.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) + " kWh"} note="Potência × horas de uso × 30 dias" icon="▦" />
+        <MetricCard label="Dispositivos ligados" value={`${String(activeDevices.length).padStart(2, "0")} / ${String(devices.length).padStart(2, "0")}`} note="Ligue ou desligue pelos cards" icon="◉" />
       </section>
 
       {notice && <div className="energy-feedback" role="status">{notice}</div>}
+      {error && !modalDevice && <div className="energy-form-error" role="alert">{error}</div>}
 
-      {loading ? (
+      {loading || carregandoCasa ? (
         <div className="energy-empty">Carregando dispositivos…</div>
       ) : devices.length ? (
         <section className="energy-device-grid" aria-label="Lista de dispositivos">
@@ -230,13 +284,13 @@ export default function DevicesPage() {
             <article className="energy-device-card" key={device.id}>
               <div className="energy-device-photo">
                 <span className="energy-device-image-fallback" aria-hidden="true">⌂</span>
-                {device.foto && (<img
+                {device.foto && (
+                  <img
                     src={device.foto}
                     alt={device.nome}
-                    onError={(event) => {
-                      event.currentTarget.style.display = "none";
-                    }}
-                  />)}
+                    onError={(event) => { event.currentTarget.style.display = "none"; }}
+                  />
+                )}
                 <span className="energy-device-status">
                   <i className={device.ativo ? "sm-live-dot" : ""} />
                   {device.ativo ? "Ligado" : "Desligado"}
@@ -246,12 +300,12 @@ export default function DevicesPage() {
                 <div className="energy-device-title">
                   <div>
                     <h3>{device.nome}</h3>
-                    <p>{roomName(device.ambienteId)}</p>
+                    <p>{device.tipo}</p>
                   </div>
                   <strong className="energy-device-power">{device.potenciaW} W</strong>
                 </div>
                 <div className="energy-device-footer">
-                  <span>{device.ativo ? "Consumo atual" : "Em espera"}</span>
+                  <span>≈ {kwhMes(device).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kWh/mês</span>
                   <div className="energy-inline-actions">
                     <button
                       className="energy-small-action"
@@ -263,7 +317,7 @@ export default function DevicesPage() {
                     >
                       {device.ativo ? "●" : "○"}
                     </button>
-                    <button className="energy-small-action" type="button" aria-label={"Editar " + device.nome} onClick={() => setModalDevice(device)}>✎</button>
+                    <button className="energy-small-action" type="button" aria-label={"Editar " + device.nome} onClick={() => { setError(""); setModalDevice(device); }}>✎</button>
                     <button className="energy-small-action danger" type="button" aria-label={"Remover " + device.nome} onClick={() => setDeviceToDelete(device)}>×</button>
                   </div>
                 </div>
@@ -278,12 +332,14 @@ export default function DevicesPage() {
       {modalDevice && (
         <Modal
           title={modalDevice.id ? "Editar dispositivo" : "Novo dispositivo"}
-          description="Os dados serão enviados no formato esperado pela API."
+          description="Potência e horas de uso são usadas para estimar o consumo e responder ao assistente."
           onClose={() => setModalDevice(null)}
         >
           <DeviceForm
             device={modalDevice.id ? modalDevice : null}
-            rooms={rooms}
+            tipos={tipos}
+            salvando={salvando}
+            erroApi={error}
             onCancel={() => setModalDevice(null)}
             onSubmit={saveDevice}
           />
@@ -298,20 +354,8 @@ export default function DevicesPage() {
           role="alertdialog"
         >
           <div className="energy-form-actions">
-            <button
-              className="energy-button-secondary"
-              type="button"
-              onClick={() => setDeviceToDelete(null)}
-            >
-              Cancelar
-            </button>
-            <button
-              className="energy-button-secondary danger"
-              type="button"
-              onClick={confirmRemoveDevice}
-            >
-              Excluir dispositivo
-            </button>
+            <button className="energy-button-secondary" type="button" onClick={() => setDeviceToDelete(null)}>Cancelar</button>
+            <button className="energy-button-secondary danger" type="button" onClick={confirmRemoveDevice}>Excluir dispositivo</button>
           </div>
         </Modal>
       )}

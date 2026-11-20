@@ -1,6 +1,7 @@
 import './App.css';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router';
 import EnergyLayout from './components/energy/EnergyLayout.jsx';
+import ProtectedRoute from './components/protected-route/ProtectedRoute.jsx';
 import DevicesPage from './pages/Dispositivos/DevicesPage.jsx';
 import RoomsPage from './pages/Ambientes/RoomsPage.jsx';
 import EnergyPage from './pages/Energia/EnergyPage.jsx';
@@ -16,12 +17,24 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/home" element={<EnergyLayout><Home /></EnergyLayout>} />
-        <Route path="/dispositivos" element={<EnergyLayout><DevicesPage /></EnergyLayout>} />
-        <Route path="/ambientes" element={<EnergyLayout><RoomsPage /></EnergyLayout>} />
-        <Route path="/energia" element={<EnergyLayout><EnergyPage /></EnergyLayout>} />
-        <Route path="/configuracoes" element={<EnergyLayout><SettingsPage /></EnergyLayout>} />
-        <Route path="/chatbot" element={<Chatbot casaId="123" />} />
+
+        <Route
+          element={
+            <ProtectedRoute>
+              <EnergyLayout>
+                <Outlet />
+              </EnergyLayout>
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/home" element={<Home />} />
+          <Route path="/dispositivos" element={<DevicesPage />} />
+          <Route path="/ambientes" element={<RoomsPage />} />
+          <Route path="/energia" element={<EnergyPage />} />
+          <Route path="/configuracoes" element={<SettingsPage />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+        </Route>
+
         <Route path="*" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>

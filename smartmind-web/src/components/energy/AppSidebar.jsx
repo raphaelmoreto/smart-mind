@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { authService } from "../../services/authService.js";
 import { navigationItems } from "./navigation.js";
 import Logo from "../../assets/logo.png";
@@ -7,6 +7,13 @@ export default function AppSidebar() {
   const location = useLocation();
   const currentUser = authService.getCurrentUser();
   const displayName = currentUser?.nome || "Usuário";
+  const navigate = useNavigate();
+
+  function sair() {
+    authService.logout();
+    sessionStorage.removeItem("casaAtualId");
+    navigate("/");
+  }
 
   return (
     <aside className="sm-sidebar">
@@ -44,6 +51,11 @@ export default function AppSidebar() {
             <span>Minha casa</span>
           </div>
         </div>
+
+        <button className="sm-nav-link" type="button" onClick={sair}>
+          <span className="sm-icon" aria-hidden="true">⎋</span>
+          <span>Sair</span>
+        </button>
       </div>
     </aside>
   );

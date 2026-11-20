@@ -1,281 +1,399 @@
 import { useEffect, useState } from "react";
-import { FormField, PageHeading, Toggle } from "../../components/energy/EnergyComponents.jsx";
+import { useNavigate } from "react-router";
+import { FormField, Modal, PageHeading, Toggle } from "../../components/energy/EnergyComponents.jsx";
 import { useLocalStorageState } from "../../components/energy/useEnergyStorage.js";
 import { useEnergyTheme } from "../../components/energy/EnergyTheme.js";
+import { useCasaAtual } from "../../hooks/useCasaAtual.js";
 import { authService } from "../../services/authService.js";
-import {
-  getConfiguracoes,
-  updateConfiguracoes,
-} from "../../services/energyApi.js";
+import { casaService } from "../../services/casaService.js";
 import { usuarioService } from "../../services/usuarioService.js";
 import "./SettingsPage.css";
 
+const casaVazia = { nome: "", rua: "", numero: "", bairro: "", cidade: "", cep: "" };
+const senhasVazias = { atual: "", nova: "", confirmacao: "" };
+
+const formatarCep = (valor) =>
+  valor.replace(/\D/g, "").slice(0, 8).replace(/^(\d{5})(\d)/, "$1-$2");
+
 export default function SettingsPage() {
+  const navigate = useNavigate();
   const { theme, setTheme } = useEnergyTheme();
-  const [settings, setSettings] = useLocalStorageState("smartmind-settings", {
-    perfil: { nome: "", email: "" },
-    casa: { nome: "", endereco: "", tarifa: 0.92, moeda: "BRL" },
-    preferencias: { idioma: "pt-BR", tema: theme, alertaConsumoAlto: true },
-  });
-  const [passwords, setPasswords] = useState({
-    atual: "",
-    nova: "",
-    confirmacao: "",
-  });
-  const [feedback, setFeedback] = useState("");
-  const [error, setError] = useState("");
+  const { usuario, casaAtual, recarregar } = useCasaAtual();
+  const usuarioId = usuario?.id;
 
+  const [perfil, setPerfil] = useState({ nome: "", usuario: "", email: "" });
+  const [senhas, setSenhas] = useState(senhasVazias);
+  const [casa, setCasa] = useState(casaVazia);
+  const [tarifa, setTarifa] = useState({ valor_kwh: "", bandeira: "VERDE" });
+  const [tarifaOriginal, setTarifaOriginal] = useState(null);
+  const [preferencias, setPreferencias] = useLocalStorageState("smartmind-preferencias", {
+    idioma: "pt-BR",
+    alertaConsumoAlto: true,
+  });
+
+  const [mensagem, setMensagem] = useState(null); // { tipo: "ok" | "erro", texto }
+  const [salvando, setSalvando] = useState("");   // "perfil" | "senha" | "casa"
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+
+  // ---------- CARREGA PERFIL ----------
   useEffect(() => {
-    let active = true;
+    if (!usuarioId) return;
+    usuarioService
+      .buscarPorId(usuarioId)
+      .then((dados) => {
+        if (dados) setPerfil({ nome: dados.nome ?? "", usuario: dados.usuario ?? "", email: dados.email ?? "" });
+      })
+      .catch((error) => setMensagem({ tipo: "erro", texto: error.message }));
+  }, [usuarioId]);
 
-    async function loadSettings() {
-      const currentUser = authService.getCurrentUser();
-      const [settingsResult, userResult] = await Promise.allSettled([
-        getConfiguracoes(),
-        currentUser ? usuarioService.buscarPorId(currentUser.id) : Promise.resolve(null),
-      ]);
+  // ---------- CARREGA CASA + TARIFA ----------
+  useEffect(() => {
+    if (!casaAtual) return;
 
-      if (!active) return;
+    setCasa({
+      nome: casaAtual.nome ?? "",
+      rua: casaAtual.rua ?? "",
+      numero: casaAtual.numero ?? "",
+      bairro: casaAtual.bairro ?? "",
+      cidade: casaAtual.cidade ?? "",
+      cep: casaAtual.cep?.trim() ?? "",
+    });
 
-      if (settingsResult.status !== "fulfilled") {
-        setError("Não foi possível carregar as configurações.");
-        return;
-      }
+    casaService
+      .buscarTarifa(casaAtual.id)
+      .then((dados) => {
+        if (!dados) return;
+        const valor = { valor_kwh: String(dados.valor_kwh), bandeira: dados.bandeira };
+        setTarifa(valor);
+        setTarifaOriginal(valor);
+      })
+      .catch(() => {});
+  }, [casaAtual]);
 
-      const data = settingsResult.value;
-      const account = userResult.status === "fulfilled" ? userResult.value : null;
-      const updatedSettings = {
-        ...data,
-        perfil: {
-          ...data.perfil,
-          nome: currentUser?.nome || account?.nome || "",
-          email: account?.email || "",
-        },
-      };
-
-      setSettings(updatedSettings);
-      setTheme(data.preferencias.tema);
+  // EXECUTA UMA AÇÃO MOSTRANDO "SALVANDO..." E A MENSAGEM DE RESULTADO
+  async function executar(secao, acao, textoSucesso) {
+    setSalvando(secao);
+    setMensagem(null);
+    try {
+      await acao();
+      setMensagem({ tipo: "ok", texto: textoSucesso });
+    } catch (error) {
+      setMensagem({ tipo: "erro", texto: error.message || "Não foi possível salvar." });
+    } finally {
+      setSalvando("");
     }
-
-    loadSettings();
-    return () => {
-      active = false;
-    };
-  }, [setSettings, setTheme]);
-
-  function updateGroup(group, key, value) {
-    setSettings((current) => ({
-      ...current,
-      [group]: { ...current[group], [key]: value },
-    }));
   }
 
-  async function saveSettings(event) {
+  function salvarPerfil(event) {
     event.preventDefault();
-    setFeedback("");
-    setError("");
-    if (!settings.perfil.nome.trim()) {
-      setError("Informe o nome do perfil.");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(settings.perfil.email)) {
-      setError("Informe um e-mail válido.");
-      return;
-    }
-    if (passwords.nova && !passwords.atual) {
-      setError("Informe a senha atual para definir uma nova senha.");
-      return;
-    }
-    if (passwords.nova !== passwords.confirmacao) {
-      setError("A nova senha e a confirmação não são iguais.");
-      return;
-    }
-
-    const payload = {
-      perfil: {
-        nome: settings.perfil.nome.trim(),
-        email: settings.perfil.email.trim(),
-        senhaAtual: passwords.atual || undefined,
-        senhaNova: passwords.nova || undefined,
+    executar(
+      "perfil",
+      async () => {
+        const dados = { nome: perfil.nome.trim(), usuario: perfil.usuario.trim(), email: perfil.email.trim() };
+        await usuarioService.atualizarPerfil(usuarioId, dados);
+        // ATUALIZA O NOME QUE APARECE NO MENU LATERAL
+        authService.saveSession({ ...usuario, nome: dados.nome.toUpperCase() });
       },
-      casa: {
-        nome: settings.casa.nome.trim(),
-        endereco: settings.casa.endereco.trim(),
-        tarifa: Number(settings.casa.tarifa),
-        moeda: settings.casa.moeda,
-      },
-      preferencias: {
-        ...settings.preferencias,
-        tema: theme,
-      },
-    };
-
-    const saved = await updateConfiguracoes(payload);
-    setSettings(saved);
-    setPasswords({ atual: "", nova: "", confirmacao: "" });
-    setFeedback("Configurações salvas com sucesso.");
+      "Perfil atualizado com sucesso."
+    );
   }
+
+  function alterarSenha(event) {
+    event.preventDefault();
+    if (senhas.nova.length < 6) {
+      setMensagem({ tipo: "erro", texto: "A nova senha deve ter pelo menos 6 caracteres." });
+      return;
+    }
+    if (senhas.nova !== senhas.confirmacao) {
+      setMensagem({ tipo: "erro", texto: "A nova senha e a confirmação não são iguais." });
+      return;
+    }
+    executar(
+      "senha",
+      async () => {
+        await usuarioService.alterarSenha(usuarioId, { senhaAtual: senhas.atual, senhaNova: senhas.nova });
+        setSenhas(senhasVazias);
+      },
+      "Senha alterada com sucesso."
+    );
+  }
+
+  function salvarCasa(event) {
+    event.preventDefault();
+    if (!/^\d{5}-\d{3}$/.test(casa.cep)) {
+      setMensagem({ tipo: "erro", texto: "Informe um CEP válido (00000-000)." });
+      return;
+    }
+
+    executar(
+      "casa",
+      async () => {
+        const dados = { ...casa, fk_usuario: usuarioId };
+        let casaId = casaAtual?.id;
+
+        if (casaId) {
+          await casaService.atualizar(casaId, dados);
+        } else {
+          await casaService.cadastrar(dados);
+          const lista = await casaService.buscarPorUsuario(usuarioId);
+          casaId = lista?.[lista.length - 1]?.id;
+        }
+
+        const tarifaMudou =
+          !tarifaOriginal ||
+          Number(tarifaOriginal.valor_kwh) !== Number(tarifa.valor_kwh) ||
+          tarifaOriginal.bandeira !== tarifa.bandeira;
+
+        if (casaId && Number(tarifa.valor_kwh) > 0 && tarifaMudou) {
+          await casaService.salvarTarifa(casaId, {
+            valor_kwh: Number(tarifa.valor_kwh),
+            bandeira: tarifa.bandeira,
+          });
+        }
+
+        await recarregar();
+      },
+      "Dados da casa salvos com sucesso."
+    );
+  }
+
+  async function excluirConta() {
+    try {
+      await usuarioService.deletar(usuarioId);
+      authService.logout();
+      sessionStorage.removeItem("casaAtualId");
+      navigate("/");
+    } catch (error) {
+      setConfirmarExclusao(false);
+      setMensagem({ tipo: "erro", texto: error.message || "Não foi possível excluir a conta." });
+    }
+  }
+
+  const atualizarCampo = (setter) => (event) =>
+    setter((atual) => ({ ...atual, [event.target.name]: event.target.value }));
 
   return (
     <main className="energy-page">
       <PageHeading
         eyebrow="PREFERÊNCIAS"
         title="Configurações"
-        description="Gerencie seu perfil, os dados da casa e suas preferências."
+        description="Gerencie seu perfil, a segurança da conta, os dados da casa e suas preferências."
       />
 
-      <form onSubmit={saveSettings}>
-        <div className="energy-setting-layout">
-          <section className="energy-panel energy-setting-card">
-            <div className="energy-panel-heading">
-              <div>
-                <h2>Perfil</h2>
-                <p>Informações de acesso e segurança.</p>
-              </div>
-              <span className="energy-metric-icon">◎</span>
-            </div>
-            <div className="energy-form-grid">
-              <FormField label="Nome" htmlFor="profile-name" className="full">
-                <input
-                  className="energy-input"
-                  id="profile-name"
-                  value={settings.perfil.nome}
-                  onChange={(event) => updateGroup("perfil", "nome", event.target.value)}
-                  required
-                />
-              </FormField>
-              <FormField label="E-mail" htmlFor="profile-email" className="full">
-                <input
-                  className="energy-input"
-                  id="profile-email"
-                  type="email"
-                  value={settings.perfil.email}
-                  onChange={(event) => updateGroup("perfil", "email", event.target.value)}
-                  required
-                />
-              </FormField>
-              <FormField label="Senha atual" htmlFor="password-current" className="full">
-                <input className="energy-input" id="password-current" type="password" autoComplete="current-password" value={passwords.atual} onChange={(event) => setPasswords({ ...passwords, atual: event.target.value })} />
-              </FormField>
-              <FormField label="Nova senha" htmlFor="password-new">
-                <input className="energy-input" id="password-new" type="password" autoComplete="new-password" value={passwords.nova} onChange={(event) => setPasswords({ ...passwords, nova: event.target.value })} />
-              </FormField>
-              <FormField label="Confirmar nova senha" htmlFor="password-confirm">
-                <input className="energy-input" id="password-confirm" type="password" autoComplete="new-password" value={passwords.confirmacao} onChange={(event) => setPasswords({ ...passwords, confirmacao: event.target.value })} />
-              </FormField>
-            </div>
-          </section>
-
-          <section className="energy-panel energy-setting-card">
-            <div className="energy-panel-heading">
-              <div>
-                <h2>Minha casa</h2>
-                <p>Dados usados para estimar o custo de energia.</p>
-              </div>
-              <span className="energy-metric-icon">⌂</span>
-            </div>
-            <div className="energy-form-grid">
-              <FormField label="Nome da casa" htmlFor="home-name" className="full">
-                <input
-                  className="energy-input"
-                  id="home-name"
-                  value={settings.casa.nome}
-                  onChange={(event) => updateGroup("casa", "nome", event.target.value)}
-                  required
-                />
-              </FormField>
-              <FormField label="Endereço / cidade" htmlFor="home-address" className="full">
-                <input
-                  className="energy-input"
-                  id="home-address"
-                  value={settings.casa.endereco}
-                  onChange={(event) => updateGroup("casa", "endereco", event.target.value)}
-                  required
-                />
-              </FormField>
-              <FormField label="Tarifa (R$/kWh)" htmlFor="home-tariff">
-                <input
-                  className="energy-input"
-                  id="home-tariff"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={settings.casa.tarifa}
-                  onChange={(event) => updateGroup("casa", "tarifa", Math.max(0, Number(event.target.value)))}
-                />
-              </FormField>
-              <FormField label="Moeda" htmlFor="home-currency">
-                <select className="energy-select" id="home-currency" value={settings.casa.moeda} onChange={(event) => updateGroup("casa", "moeda", event.target.value)}>
-                  <option value="BRL">Real brasileiro (BRL)</option>
-                  <option value="USD">Dólar americano (USD)</option>
-                  <option value="EUR">Euro (EUR)</option>
-                </select>
-              </FormField>
-            </div>
-          </section>
-
-          <section className="energy-panel energy-setting-card energy-preferences">
-            <div className="energy-panel-heading">
-              <div>
-                <h2>Preferências</h2>
-                <p>Personalize como o SmartMind funciona.</p>
-              </div>
-              <span className="energy-metric-icon">⚙</span>
-            </div>
-            <div className="energy-setting-row">
-              <div>
-                <strong>Idioma</strong>
-                <span>Idioma da interface</span>
-              </div>
-              <select className="energy-select energy-compact-select" value={settings.preferencias.idioma} onChange={(event) => updateGroup("preferencias", "idioma", event.target.value)} aria-label="Idioma">
-                <option value="pt-BR">Português (Brasil)</option>
-                <option value="en-US">English</option>
-                <option value="es-ES">Español</option>
-              </select>
-            </div>
-            <div className="energy-setting-row">
-              <div>
-                <strong>Tema</strong>
-                <span>Aparência da interface</span>
-              </div>
-              <select
-                className="energy-select energy-compact-select"
-                value={theme}
-                onChange={(event) => {
-                  setTheme(event.target.value);
-                  updateGroup("preferencias", "tema", event.target.value);
-                }}
-                aria-label="Tema"
-              >
-                <option value="dark">Escuro</option>
-                <option value="light">Claro</option>
-              </select>
-            </div>
-            <div className="energy-setting-row">
-              <div>
-                <strong>Alerta de consumo alto</strong>
-                <span>Notificar quando a casa ultrapassar o limite.</span>
-              </div>
-              <Toggle
-                checked={settings.preferencias.alertaConsumoAlto}
-                onChange={(value) => updateGroup("preferencias", "alertaConsumoAlto", value)}
-                label="Alerta de consumo alto"
-              />
-            </div>
-          </section>
-
-          <section className="energy-panel energy-setting-card energy-save-card">
-            <div>
-              <h2>Pronto para salvar?</h2>
-              <p>As preferências ficam armazenadas neste navegador enquanto a API não está conectada.</p>
-            </div>
-            <button className="energy-button" type="submit">Salvar configurações</button>
-          </section>
+      {mensagem && (
+        <div
+          className={mensagem.tipo === "erro" ? "energy-form-error" : "energy-feedback"}
+          role={mensagem.tipo === "erro" ? "alert" : "status"}
+        >
+          {mensagem.texto}
         </div>
+      )}
 
-        {error && <div className="energy-form-error" role="alert">{error}</div>}
-        {feedback && <div className="energy-feedback" role="status">{feedback}</div>}
-      </form>
+      <div className="energy-setting-layout">
+        {/* ================= PERFIL ================= */}
+        <form className="energy-panel energy-setting-card" onSubmit={salvarPerfil}>
+          <div className="energy-panel-heading">
+            <div>
+              <h2>Perfil</h2>
+              <p>Seus dados de identificação.</p>
+            </div>
+            <span className="energy-metric-icon">◎</span>
+          </div>
+          <div className="energy-form-grid">
+            <FormField label="Nome completo" htmlFor="profile-name" className="full">
+              <input className="energy-input" id="profile-name" name="nome" value={perfil.nome} onChange={atualizarCampo(setPerfil)} required />
+            </FormField>
+            <FormField label="Usuário" htmlFor="profile-user">
+              <input className="energy-input" id="profile-user" name="usuario" autoComplete="username" value={perfil.usuario} onChange={atualizarCampo(setPerfil)} required />
+            </FormField>
+            <FormField label="E-mail" htmlFor="profile-email">
+              <input className="energy-input" id="profile-email" name="email" type="email" value={perfil.email} onChange={atualizarCampo(setPerfil)} required />
+            </FormField>
+          </div>
+          <div className="energy-form-actions">
+            <button className="energy-button" type="submit" disabled={salvando === "perfil"}>
+              {salvando === "perfil" ? "Salvando..." : "Salvar perfil"}
+            </button>
+          </div>
+        </form>
+
+        {/* ================= SEGURANÇA ================= */}
+        <form className="energy-panel energy-setting-card" onSubmit={alterarSenha}>
+          <div className="energy-panel-heading">
+            <div>
+              <h2>Segurança</h2>
+              <p>Altere sua senha de acesso.</p>
+            </div>
+            <span className="energy-metric-icon">🔒</span>
+          </div>
+          <div className="energy-form-grid">
+            <FormField label="Senha atual" htmlFor="password-current" className="full">
+              <input className="energy-input" id="password-current" name="atual" type="password" autoComplete="current-password" value={senhas.atual} onChange={atualizarCampo(setSenhas)} required />
+            </FormField>
+            <FormField label="Nova senha" htmlFor="password-new">
+              <input className="energy-input" id="password-new" name="nova" type="password" autoComplete="new-password" minLength={6} value={senhas.nova} onChange={atualizarCampo(setSenhas)} required />
+            </FormField>
+            <FormField label="Confirmar nova senha" htmlFor="password-confirm">
+              <input className="energy-input" id="password-confirm" name="confirmacao" type="password" autoComplete="new-password" value={senhas.confirmacao} onChange={atualizarCampo(setSenhas)} required />
+            </FormField>
+          </div>
+          <div className="energy-form-actions">
+            <button className="energy-button" type="submit" disabled={salvando === "senha"}>
+              {salvando === "senha" ? "Alterando..." : "Alterar senha"}
+            </button>
+          </div>
+        </form>
+
+        {/* ================= MINHA CASA ================= */}
+        <form className="energy-panel energy-setting-card" onSubmit={salvarCasa}>
+          <div className="energy-panel-heading">
+            <div>
+              <h2>Minha casa</h2>
+              <p>{casaAtual ? "Endereço e tarifa usados nos cálculos." : "Cadastre sua casa para usar o SmartMind."}</p>
+            </div>
+            <span className="energy-metric-icon">⌂</span>
+          </div>
+          <div className="energy-form-grid">
+            <FormField label="Nome da casa" htmlFor="home-name" className="full">
+              <input className="energy-input" id="home-name" name="nome" value={casa.nome} onChange={atualizarCampo(setCasa)} required />
+            </FormField>
+            <FormField label="Rua" htmlFor="home-street" className="full">
+              <input className="energy-input" id="home-street" name="rua" value={casa.rua} onChange={atualizarCampo(setCasa)} required />
+            </FormField>
+            <FormField label="Número" htmlFor="home-number">
+              <input className="energy-input" id="home-number" name="numero" value={casa.numero} onChange={atualizarCampo(setCasa)} required />
+            </FormField>
+            <FormField label="Bairro" htmlFor="home-district">
+              <input className="energy-input" id="home-district" name="bairro" value={casa.bairro} onChange={atualizarCampo(setCasa)} required />
+            </FormField>
+            <FormField label="Cidade" htmlFor="home-city">
+              <input className="energy-input" id="home-city" name="cidade" value={casa.cidade} onChange={atualizarCampo(setCasa)} required />
+            </FormField>
+            <FormField label="CEP" htmlFor="home-cep">
+              <input
+                className="energy-input"
+                id="home-cep"
+                name="cep"
+                inputMode="numeric"
+                placeholder="00000-000"
+                value={casa.cep}
+                onChange={(event) => setCasa((atual) => ({ ...atual, cep: formatarCep(event.target.value) }))}
+                required
+              />
+            </FormField>
+            <FormField label="Tarifa (R$/kWh)" htmlFor="home-tariff">
+              <input
+                className="energy-input"
+                id="home-tariff"
+                type="number"
+                min="0.01"
+                step="0.00001"
+                value={tarifa.valor_kwh}
+                onChange={(event) => setTarifa((atual) => ({ ...atual, valor_kwh: event.target.value }))}
+              />
+            </FormField>
+            <FormField label="Bandeira tarifária" htmlFor="home-flag">
+              <select
+                className="energy-select"
+                id="home-flag"
+                value={tarifa.bandeira}
+                onChange={(event) => setTarifa((atual) => ({ ...atual, bandeira: event.target.value }))}
+              >
+                <option value="VERDE">Verde</option>
+                <option value="AMARELA">Amarela</option>
+                <option value="VERMELHA">Vermelha</option>
+              </select>
+            </FormField>
+          </div>
+          <div className="energy-form-actions">
+            <button className="energy-button" type="submit" disabled={salvando === "casa"}>
+              {salvando === "casa" ? "Salvando..." : casaAtual ? "Salvar casa" : "Cadastrar casa"}
+            </button>
+          </div>
+        </form>
+
+        {/* ================= PREFERÊNCIAS (LOCAL) ================= */}
+        <section className="energy-panel energy-setting-card energy-preferences">
+          <div className="energy-panel-heading">
+            <div>
+              <h2>Preferências</h2>
+              <p>Ficam salvas neste navegador.</p>
+            </div>
+            <span className="energy-metric-icon">⚙</span>
+          </div>
+          <div className="energy-setting-row">
+            <div>
+              <strong>Idioma</strong>
+              <span>Idioma da interface</span>
+            </div>
+            <select
+              className="energy-select energy-compact-select"
+              value={preferencias.idioma}
+              onChange={(event) => setPreferencias({ ...preferencias, idioma: event.target.value })}
+              aria-label="Idioma"
+            >
+              <option value="pt-BR">Português (Brasil)</option>
+              <option value="en-US">English</option>
+              <option value="es-ES">Español</option>
+            </select>
+          </div>
+          <div className="energy-setting-row">
+            <div>
+              <strong>Tema</strong>
+              <span>Aparência da interface</span>
+            </div>
+            <select
+              className="energy-select energy-compact-select"
+              value={theme}
+              onChange={(event) => setTheme(event.target.value)}
+              aria-label="Tema"
+            >
+              <option value="dark">Escuro</option>
+              <option value="light">Claro</option>
+            </select>
+          </div>
+          <div className="energy-setting-row">
+            <div>
+              <strong>Alerta de consumo alto</strong>
+              <span>Notificar quando a casa ultrapassar o limite.</span>
+            </div>
+            <Toggle
+              checked={preferencias.alertaConsumoAlto}
+              onChange={(value) => setPreferencias({ ...preferencias, alertaConsumoAlto: value })}
+              label="Alerta de consumo alto"
+            />
+          </div>
+        </section>
+
+        {/* ================= ZONA DE PERIGO ================= */}
+        <section className="energy-panel energy-setting-card energy-save-card">
+          <div>
+            <h2>Excluir conta</h2>
+            <p>Sua conta será desativada e você sairá do sistema.</p>
+          </div>
+          <button className="energy-button-secondary danger" type="button" onClick={() => setConfirmarExclusao(true)}>
+            Excluir minha conta
+          </button>
+        </section>
+      </div>
+
+      {confirmarExclusao && (
+        <Modal
+          title="Excluir sua conta?"
+          description="Essa ação desativa seu acesso ao SmartMind. Deseja continuar?"
+          onClose={() => setConfirmarExclusao(false)}
+          role="alertdialog"
+        >
+          <div className="energy-form-actions">
+            <button className="energy-button-secondary" type="button" onClick={() => setConfirmarExclusao(false)}>
+              Cancelar
+            </button>
+            <button className="energy-button-secondary danger" type="button" onClick={excluirConta}>
+              Sim, excluir
+            </button>
+          </div>
+        </Modal>
+      )}
     </main>
   );
 }

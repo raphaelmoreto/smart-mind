@@ -18,8 +18,16 @@ class UsuarioService extends ApiService {
         return await this.get('usuario');
     }
 
+    async alterarSenha(id, dados) {
+        return await this.put(`usuario/${id}/senha`, dados);
+    }
+
     async atualizar(id, dados) {
         return await this.put(`usuario/${id}`, dados);
+    }
+
+    async atualizarPerfil(id, dados) {
+        return await this.put(`usuario/${id}/perfil`, dados);
     }
 
     async deletar(id) {
