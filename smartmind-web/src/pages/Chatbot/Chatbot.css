@@ -88,7 +88,7 @@
     font-family: var(--fonte-titulos);
     font-size: 17px;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--ui-color-on-brand);
 }
 
 .chatbot-heading h1 {
@@ -118,8 +118,8 @@
 
     border-radius: 50%;
 
-    background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+    background: var(--ui-color-success);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--ui-color-success) 50%, transparent);
 }
 
 /* =========================================
@@ -155,7 +155,7 @@
 }
 
 .chatbot-back-button:hover {
-    background: rgba(0, 71, 255, 0.12);
+    background: color-mix(in srgb, var(--ui-color-brand) 12%, transparent);
     border-color: var(--cor-primaria);
     color: var(--cor-texto-principal);
 
@@ -180,7 +180,7 @@
     background:
         radial-gradient(
             circle at top right,
-            rgba(0, 71, 255, 0.035),
+            color-mix(in srgb, var(--ui-color-brand) 4%, transparent),
             transparent 35%
         ),
         var(--cor-fundo-principal);
@@ -240,14 +240,14 @@
     background: linear-gradient(
         135deg,
         var(--cor-primaria),
-        #1239c9
+        var(--ui-color-brand-hover)
     );
 
-    color: #ffffff;
+    color: var(--ui-color-on-brand);
 
     border-bottom-right-radius: 4px;
 
-    box-shadow: 0 5px 18px rgba(0, 71, 255, 0.15);
+    box-shadow: 0 5px 18px color-mix(in srgb, var(--ui-color-brand) 15%, transparent);
 }
 
 .chat-message.assistant .chat-message-content {
@@ -307,11 +307,11 @@
     margin: 0 20px 10px;
     padding: 12px 15px;
 
-    background: rgba(220, 38, 38, 0.10);
-    border: 1px solid rgba(220, 38, 38, 0.30);
+    background: var(--ui-color-danger-surface);
+    border: 1px solid var(--ui-color-danger);
     border-radius: var(--raio-borda-medio);
 
-    color: #f87171;
+    color: var(--ui-color-danger);
     font-size: 13px;
 }
 
@@ -355,7 +355,7 @@
 
 .chat-input input:focus {
     border-color: var(--cor-foco);
-    box-shadow: 0 0 0 3px rgba(64, 185, 208, 0.10);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-color-focus) 10%, transparent);
 }
 
 .chat-input button {
@@ -369,7 +369,7 @@
     border-radius: var(--raio-borda-medio);
 
     background: var(--cor-primaria);
-    color: #ffffff;
+    color: var(--ui-color-on-brand);
 
     font-family: var(--fonte-corpo);
     font-size: 14px;

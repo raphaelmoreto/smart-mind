@@ -1,0 +1,42 @@
+.energy-preferences {
+  grid-column: 1 / -1;
+}
+
+.energy-compact-select {
+  width: min(100%, 225px);
+}
+
+.energy-save-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.energy-save-card h2 {
+  margin: 0;
+  color: var(--text);
+  font: 700 15px Kedebideri, sans-serif;
+}
+
+.energy-save-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.energy-save-card .energy-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 760px) {
+  .energy-save-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .energy-compact-select {
+    width: min(58%, 225px);
+  }
+}

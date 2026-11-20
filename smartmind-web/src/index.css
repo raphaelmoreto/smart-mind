@@ -6,44 +6,68 @@
 ========================= */
 
 :root {
-    /* Fontes */
     --fonte-corpo: 'DM Sans', sans-serif;
     --fonte-titulos: 'Manrope', sans-serif;
+    --ui-color-brand: #001b8c;
+    --ui-color-brand-hover: #00488c;
+    --ui-color-link: #4ba8df;
+    --ui-color-link-hover: #76d6e5;
+    --ui-color-focus: #40b9d0;
+    --ui-color-dark-background: #070a14;
+    --ui-color-dark-surface: #0d1221;
+    --ui-color-dark-field: #090e1b;
+    --ui-color-dark-border: #202a40;
+    --ui-color-dark-text: #f1f5f9;
+    --ui-color-dark-muted: #d2d9e8;
+    --ui-color-dark-subtle: #8995ad;
+    --ui-color-dark-faint: #78849b;
+    --ui-color-dark-icon: #8290a9;
+    --ui-color-dark-placeholder: #626e86;
+    --ui-color-dark-raised: #111827;
+    --ui-color-dark-hover: #182238;
+    --ui-color-dark-border-strong: #29344b;
+    --ui-color-dark-border-hover: #3b4966;
+    --ui-color-dark-line: #273047;
+    --ui-color-dark-google-text: #e2e8f0;
+    --ui-color-info-surface: #0d202c;
+    --ui-color-info-text: #77d9ed;
+    --ui-color-light-raised: #f7f9fc;
+    --ui-color-light-soft: #e9eef5;
+    --ui-color-on-brand: #ffffff;
+    --ui-color-light-background: #f4f6fa;
+    --ui-color-light-surface: #ffffff;
+    --ui-color-light-text: #202938;
+    --ui-color-light-muted: #526174;
+    --ui-color-light-faint: #59677a;
+    --ui-color-light-border: #7a879a;
+    --ui-color-danger: #ff9cac;
+    --ui-color-danger-surface: #29121c;
+    --ui-color-danger-light: #9b1c31;
+    --ui-color-success: #86efac;
+    --ui-color-success-surface: #12291f;
+    --ui-color-success-light: #237344;
 
-    /* Cores de fundo */
-    --cor-fundo-principal: #060b13;
-    --cor-fundo-cartao: #0b1320;
-    --cor-fundo-campo: #080e18;
-
-    /* Cores de texto */
-    --cor-texto-principal: #ffffff;
-    --cor-texto-secundario: #7e8b9b;
-    --cor-texto-placeholder: #415065;
-
-    /* Cores de destaque */
-    --cor-primaria: #0047ff;
-    --cor-primaria-hover: #003cd6;
-    --cor-link: #2b7fff;
-    --cor-foco: #40b9d0;
-
-    /* Bordas */
-    --cor-borda: #1a283d;
+    --cor-fundo-principal: var(--ui-color-dark-background);
+    --cor-fundo-cartao: var(--ui-color-dark-surface);
+    --cor-fundo-campo: var(--ui-color-dark-field);
+    --cor-texto-principal: var(--ui-color-dark-text);
+    --cor-texto-secundario: var(--ui-color-dark-muted);
+    --cor-texto-placeholder: var(--ui-color-dark-placeholder);
+    --cor-primaria: var(--ui-color-brand);
+    --cor-primaria-hover: var(--ui-color-brand-hover);
+    --cor-link: var(--ui-color-link);
+    --cor-foco: var(--ui-color-focus);
+    --cor-borda: var(--ui-color-dark-border);
+    --cor-gradiente-inicio: var(--ui-color-brand-hover);
+    --cor-gradiente-fim: var(--ui-color-focus);
     --raio-borda-pequeno: 6px;
     --raio-borda-medio: 8px;
     --raio-borda-grande: 12px;
-
-    /* Gradiente dos ícones */
-    --cor-gradiente-inicio: #00e5ff;
-    --cor-gradiente-fim: #7a00ff;
-
-    /* Transições */
     --transicao-rapida: 160ms ease;
     --transicao-padrao: 200ms ease;
-
-    /* Configurações globais */
     font-family: var(--fonte-corpo);
-    color: #202938;
-    background: #f4f6fa;
+    color: var(--ui-color-light-text);
+    background: var(--ui-color-light-background);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;

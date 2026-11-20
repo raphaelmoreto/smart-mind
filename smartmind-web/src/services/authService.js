@@ -37,16 +37,28 @@ class AuthService extends ApiService {
     }
 
     getCurrentUser() {
-        const user = sessionStorage.getItem('user');
-
-        if (!user) {
-            return null;
-        }
-
         try {
-            return JSON.parse(user);
+            const storedUser = sessionStorage.getItem('user');
+
+            if (!storedUser) {
+                return null;
+            }
+
+            const currentUser = JSON.parse(storedUser);
+
+            if (
+                !currentUser ||
+                currentUser.id == null ||
+                typeof currentUser.nome !== 'string' ||
+                !currentUser.nome.trim() ||
+                typeof currentUser.role !== 'string'
+            ) {
+                sessionStorage.removeItem('user');
+                return null;
+            }
+
+            return { ...currentUser, nome: currentUser.nome.trim() };
         } catch {
-            sessionStorage.removeItem('user');
             return null;
         }
     }
