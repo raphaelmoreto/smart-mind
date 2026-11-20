@@ -32,6 +32,11 @@ export class AtualizarDispositivoUseCase {
         dispositivo.setNome(dto.nome);
         dispositivo.setFK_TipoDispositivo(dto.fk_tipoDispositivo);
         dispositivo.setFK_Casa(dto.fk_casa);
+        dispositivo.setPotenciaWatts(dto.potencia_watts);
+        dispositivo.setHorasUsoDia(dto.horas_uso_dia);
+        
+        if (dto.ligado !== undefined) dispositivo.setLigado(dto.ligado);
+        dispositivo.setFotoUrl(dto.foto_url);
 
         if (!dispositivo.isValid) {
             return Response.erro(TipoRetorno.Validation, 'erro de validação', dispositivo.notificationsList);

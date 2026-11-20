@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CasaEntity } from '../../domain/entities/casa.entity.js';
-import { CasaOutputDto } from '../../domain/dto/casa.dto.js';
+import { CasaOutputDto, TarifaInputDto, TarifaOutputDto } from '../../domain/dto/casa.dto.js';
 import { ICasaRepository } from '../../domain/interfaces/repositories/casa.repository.interface.js';
 
 @Injectable()
@@ -86,6 +86,27 @@ export class CasaRepository implements ICasaRepository {
         return casa ?? null;
     }
 
+    async getByUsuario(usuarioId: number): Promise<CasaOutputDto[]> {
+        return await this.repository
+            .createQueryBuilder('c')
+            .innerJoin('Usuario', 'u', 'c.fk_usuario = u.id')
+            .select([
+                'c.id AS id',
+                'c.nome AS nome',
+                'c.rua AS rua',
+                'c.bairro AS bairro',
+                'c.cidade AS cidade',
+                'c.numero AS numero',
+                'c.cep AS cep',
+                'u.nome AS proprietario',
+                `CASE WHEN c.ativo = TRUE THEN 'ATIVO' ELSE 'INATIVO' END AS status`
+            ])
+            .where('c.fk_usuario = :usuarioId', { usuarioId })
+            .andWhere('c.ativo = TRUE')
+            .orderBy('c.id', 'ASC')
+            .getRawMany<CasaOutputDto>();
+    }
+
     async getCasaEntity(id: number): Promise<CasaEntity | null> {
         const casa = await this.repository
             .createQueryBuilder('c')
@@ -103,6 +124,38 @@ export class CasaRepository implements ICasaRepository {
             .getOne();
 
         return casa ?? null;
+    }
+
+    async getTarifaVigente(casaId: number): Promise<TarifaOutputDto | null> {
+        const result = await this.repository.query(
+            `
+            SELECT id,
+                   valor_kwh::float AS valor_kwh,
+                   bandeira,
+                   COALESCE(valor_adicional_kwh, 0)::float AS valor_adicional_kwh,
+                   dt_vigencia
+            FROM "Tarifa_Energia"
+            WHERE fk_casa = $1
+              AND dt_vigencia <= CURRENT_DATE
+            ORDER BY dt_vigencia DESC, id DESC
+            LIMIT 1
+            `,
+            [casaId]
+        );
+        return result[0] ?? null;
+    }
+
+    // GUARDA HISTÓRICO: CADA ALTERAÇÃO VIRA UMA NOVA LINHA COM VIGÊNCIA = HOJE
+    async inserirTarifa(casaId: number, dto: TarifaInputDto): Promise<boolean> {
+        const result = await this.repository.query(
+            `
+            INSERT INTO "Tarifa_Energia" (valor_kwh, bandeira, valor_adicional_kwh, dt_vigencia, fk_casa)
+            VALUES ($1, $2, $3, CURRENT_DATE, $4)
+            RETURNING id
+            `,
+            [dto.valor_kwh, dto.bandeira, dto.valor_adicional_kwh ?? 0, casaId]
+        );
+        return result.length === 1;
     }
 
     async insert(entity: CasaEntity): Promise<boolean> {

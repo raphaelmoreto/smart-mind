@@ -6,12 +6,14 @@ import { UsuarioModule } from '../usuario/usuario.module.js';
 import { AtualizarCasaUseCase } from './application/use-cases/atualizar-casa.js';
 import { BuscarCasasUseCase } from './application/use-cases/buscar-casas.js';
 import { BuscarCasaPorIdUseCase } from './application/use-cases/buscar-casa-por-id.js';
+import { BuscarCasasPorUsuarioUseCase } from './application/use-cases/buscar-casas-por-usuario.js';
 import { CasaController } from './presentation/controllers//casa.controller.js';
 import { CasaEntity } from './domain/entities/casa.entity.js';
 import { CASA_REPOSITORY } from './casa.constants.js';
 import { CasaRepository } from './infrastructure/repositories/casa.repository.js';
 import { CriarCasaUseCase } from './application/use-cases/criar-casa.js';
 import { DeletarCasaUseCase } from './application/use-cases/deletar-casa.js';
+import { TarifaCasaUseCase } from './application/use-cases/tarifa-casa.js';
 
 @Module({
     imports: [
@@ -26,10 +28,12 @@ import { DeletarCasaUseCase } from './application/use-cases/deletar-casa.js';
         AtualizarCasaUseCase,
         BuscarCasasUseCase,
         BuscarCasaPorIdUseCase,
+        BuscarCasasPorUsuarioUseCase,
         CasaRepository,
         CriarCasaUseCase,
         DeletarCasaUseCase,
-        { provide: CASA_REPOSITORY, useClass: CasaRepository }
+        { provide: CASA_REPOSITORY, useClass: CasaRepository },
+        TarifaCasaUseCase
     ],
     exports: [
         CASA_REPOSITORY

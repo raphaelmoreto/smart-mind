@@ -2,6 +2,8 @@ import { DatabaseModule } from './../core/database/database.module.js';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AlterarSenhaUsuarioUseCase } from './application/use-cases/alterar-senha-usuario.js';
+import { AtualizarPerfilUsuarioUseCase } from './application/use-cases/atualizar-perfil-usuario.js';
 import { AtualizarUsuarioUseCase } from './application/use-cases/atualizar-usuario.js';
 import { BuscarUsuarioPorIdUseCase } from './application/use-cases/buscar-usuario-por-id.js';
 import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.js';
@@ -21,6 +23,8 @@ import { UsuarioRepository } from './infrastructure/repositories/usuario.reposit
         UsuarioController
     ],
     providers: [
+        AlterarSenhaUsuarioUseCase,
+        AtualizarPerfilUsuarioUseCase,
         CriarUsuarioUseCase,
         { provide: USUARIO_REPOSITORY, useClass: UsuarioRepository },
         DeletarUsuarioUseCase,

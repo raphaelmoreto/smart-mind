@@ -87,6 +87,16 @@ export class EconomiaUseCase {
                 );
                 break;
 
+            case 'maquina de lavar':
+                sugestoes.push('Lave com a capacidade máxima de roupas recomendada pelo fabricante.');
+                sugestoes.push('Prefira ciclos com água fria sempre que possível.');
+                break;
+
+            case 'ferro de passar':
+                sugestoes.push('Acumule roupas e passe tudo de uma vez.');
+                sugestoes.push('Comece pelas peças que pedem temperatura mais baixa.');
+                break;
+
             default:
                 sugestoes.push(
                     'Continue monitorando o consumo para identificar oportunidades de economia.'

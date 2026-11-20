@@ -1,15 +1,20 @@
-import { Injectable,InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { isAxiosError } from 'axios';
 
 @Injectable()
 export class PythonAiClient {
-    private readonly baseUrl = 'http://localhost:8000';
 
     constructor(
-        private readonly httpService: HttpService
+        private readonly httpService: HttpService,
+        private readonly configService: ConfigService
     ) {}
+
+    private get baseUrl(): string {
+        return this.configService.get<string>('AI_URL') ?? 'http://localhost:8000';
+    }
 
     async processarMensagem(mensagem: string) {
         try {
@@ -47,11 +52,11 @@ export class PythonAiClient {
         temperatura_media: number;
         mes: number;
         bandeira: string;
-    }) {
+    }): Promise<{ consumo_previsto: number }> {
         try {
             const response = await firstValueFrom(
                 this.httpService.post(
-                    `${this.baseUrl}/ml/predict-consumption`,
+                    `${this.baseUrl}/ml/predict`,
                     data
                 )
             );

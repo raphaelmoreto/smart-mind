@@ -1,5 +1,5 @@
 import { CasaEntity } from "../../entities/casa.entity.js";
-import { CasaOutputDto } from "../../dto/casa.dto.js";
+import { CasaOutputDto, TarifaInputDto, TarifaOutputDto } from "../../dto/casa.dto.js";
 import { IDelete } from "../../../../core/domain/interfaces/delete.interface.js";
 import { IGetAll } from "../../../../core/domain/interfaces/getAll.interface.js";
 import { IGetById } from "../../../../core/domain/interfaces/getById.interface.js";
@@ -14,7 +14,13 @@ export interface ICasaRepository
             IInsert<CasaEntity>,
             IUpdate<CasaEntity>
 {
+    getByUsuario(usuarioId: number): Promise<CasaOutputDto[]>;
+
     getCasaEntity(id: number): Promise<CasaEntity | null>;
+
+    getTarifaVigente(casaId: number): Promise<TarifaOutputDto | null>;
+
+    inserirTarifa(casaId: number, dto: TarifaInputDto): Promise<boolean>;    
 
     verificarSeCasaExiste(id: number): Promise<boolean>;
 }

@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsIn, IsNumber, IsOptional, Min, IsString } from 'class-validator';
 
 export class CasaInputDto {
 
@@ -60,4 +60,29 @@ export class CasaOutputDto {
 
     @ApiProperty()
     status: string;
+}
+
+export class TarifaInputDto {
+    @ApiProperty({ example: 0.75 })
+    @IsNumber()
+    @Min(0.01)
+    valor_kwh: number;
+
+    @ApiProperty({ enum: ['VERDE', 'AMARELA', 'VERMELHA'] })
+    @IsIn(['VERDE', 'AMARELA', 'VERMELHA'])
+    bandeira: string;
+
+    @ApiPropertyOptional({ example: 0 })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    valor_adicional_kwh?: number;
+}
+
+export class TarifaOutputDto {
+    @ApiProperty() id: number;
+    @ApiProperty() valor_kwh: number;
+    @ApiProperty() bandeira: string;
+    @ApiProperty() valor_adicional_kwh: number;
+    @ApiProperty() dt_vigencia: Date;
 }

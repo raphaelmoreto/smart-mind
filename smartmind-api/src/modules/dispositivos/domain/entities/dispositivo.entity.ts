@@ -1,5 +1,10 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, type ValueTransformer } from 'typeorm';
 import { BaseEntity } from '../../../core/domain/entities/base.entity.js';
+
+const decimalTransformer: ValueTransformer = {
+    to: (valor?: number | null) => valor,
+    from: (valor?: string | null) => (valor === null || valor === undefined ? null : Number(valor)),
+};
 
 @Entity('Dispositivo')
 export class DispositivoEntity extends BaseEntity {
@@ -12,6 +17,18 @@ export class DispositivoEntity extends BaseEntity {
     @Column()
     private fk_casa: number;
 
+    @Column({ type: 'decimal', precision: 10, scale: 2, transformer: decimalTransformer })
+    private potencia_watts: number;
+
+    @Column({ type: 'decimal', precision: 4, scale: 2, transformer: decimalTransformer })
+    private horas_uso_dia: number;
+
+    @Column({ type: 'boolean', default: false })
+    private ligado: boolean;
+
+    @Column({ type: 'text', nullable: true })
+    private foto_url: string | null;
+
     constructor() {
         super();
     }
@@ -19,12 +36,20 @@ export class DispositivoEntity extends BaseEntity {
     public static instanciarDispositivo(
         nome: string,
         fk_tipoDispositivo: number,
-        fk_casa: number
+        fk_casa: number,
+        potencia_watts: number,
+        horas_uso_dia: number,
+        ligado: boolean = false,
+        foto_url?: string | null
     ): DispositivoEntity {
         const dispositivo = new DispositivoEntity();
         dispositivo.setNome(nome);
         dispositivo.setFK_TipoDispositivo(fk_tipoDispositivo);
         dispositivo.setFK_Casa(fk_casa);
+        dispositivo.setPotenciaWatts(potencia_watts);
+        dispositivo.setHorasUsoDia(horas_uso_dia);
+        dispositivo.setLigado(ligado);
+        dispositivo.setFotoUrl(foto_url);
         return dispositivo;
     }
 
@@ -51,8 +76,39 @@ export class DispositivoEntity extends BaseEntity {
         }
         this.fk_casa = Number(id);
     }
-    
+
+    public setPotenciaWatts(potencia: number): void {
+        const valor = Number(potencia);
+        if (!Number.isFinite(valor) || valor <= 0) {
+            this.addNotification('potencia_watts', 'potência deve ser maior que zero');
+            return;
+        }
+        this.potencia_watts = valor;
+    }
+
+    public setHorasUsoDia(horas: number): void {
+        const valor = Number(horas ?? 0);
+        if (!Number.isFinite(valor) || valor < 0 || valor > 24) {
+            this.addNotification('horas_uso_dia', 'horas de uso devem estar entre 0 e 24');
+            return;
+        }
+        this.horas_uso_dia = valor;
+    }
+
+    public setLigado(ligado: boolean): void {
+        this.ligado = Boolean(ligado);
+    }
+
+    public setFotoUrl(foto?: string | null): void {
+        const valor = foto?.trim();
+        this.foto_url = valor ? valor : null;
+    }
+
     public getNome(): string { return this.nome; }
     public getFK_TipoDispositivo(): number { return this.fk_tipoDispositivo; }
     public getFK_Casa(): number { return this.fk_casa; }
+    public getPotenciaWatts(): number { return this.potencia_watts; }
+    public getHorasUsoDia(): number { return this.horas_uso_dia; }
+    public getLigado(): boolean { return this.ligado; }
+    public getFotoUrl(): string | null { return this.foto_url; }
 }

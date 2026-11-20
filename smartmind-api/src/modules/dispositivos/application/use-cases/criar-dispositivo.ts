@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Response } from '../../../core/application/response/response.js';
 import { TipoRetorno } from '../../../core/application/enums/eTipoRetorno.js';
 import { DISPOSITIVO_REPOSITORY } from '../../dispositivos.constants.js';
-import type { IDispositivoRepository } from '../../domain/interfaces/repositories/dispositivo.repository.interface.ts';
+import type { IDispositivoRepository } from '../../domain/interfaces/repositories/dispositivo.repository.interface.js';
 import { DispositivoInputDto } from '../../domain/dto/dispositivo.dto.js';
 import { DispositivoEntity } from '../../domain/entities/dispositivo.entity.js';
 
@@ -28,7 +28,11 @@ export class CriarDispositivoUseCase {
         const dispositivo = DispositivoEntity.instanciarDispositivo(
             dto.nome,
             dto.fk_tipoDispositivo,
-            dto.fk_casa
+            dto.fk_casa,
+            dto.potencia_watts,
+            dto.horas_uso_dia,
+            dto.ligado ?? false,
+            dto.foto_url
         );
 
         if (!dispositivo.isValid) {

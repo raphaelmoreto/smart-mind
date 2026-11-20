@@ -1,18 +1,22 @@
 import { BaseController } from '../../../core/presentation/controllers/base.controller.js';
-import { Body, Controller, Delete, Get, Param, Post, Put, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Res } from '@nestjs/common';
 
+import { AlterarSenhaDto, AtualizarPerfilDto, UsuarioInputDto } from '../../domain/dto/usuario.dto.js';
+import { AlterarSenhaUsuarioUseCase } from '../../application/use-cases/alterar-senha-usuario.js';
+import { AtualizarPerfilUsuarioUseCase } from '../../application/use-cases/atualizar-perfil-usuario.js';
 import { AtualizarUsuarioUseCase } from '../../application/use-cases/atualizar-usuario.js';
 import { BuscarUsuarioPorIdUseCase } from '../../application/use-cases/buscar-usuario-por-id.js';
 import { BuscarUsuariosUseCase } from '../../application/use-cases/buscar-usuarios.js';
 import { CriarUsuarioUseCase } from '../../application/use-cases/criar-usuario.js';
 import { DeletarUsuarioUseCase } from '../../application/use-cases/deletar-usuario.js';
 import type { Response as ExpressResponse } from 'express';
-import { UsuarioInputDto } from '../../domain/dto/usuario.dto.js';
 
 @Controller("api/usuario")
 export class UsuarioController extends BaseController {
     
     constructor (
+        private readonly alterarSenhaUseCase: AlterarSenhaUsuarioUseCase,
+        private readonly atualizarPerfilUseCase: AtualizarPerfilUsuarioUseCase,
         private readonly atualizarUsuarioUseCase: AtualizarUsuarioUseCase,
         private readonly buscarUsuarioPorIdUseCase: BuscarUsuarioPorIdUseCase,
         private readonly buscarUsuariosUseCase: BuscarUsuariosUseCase,
@@ -21,14 +25,14 @@ export class UsuarioController extends BaseController {
     ) { super(); }
 
     @Delete(":id")
-    async delete(@Res() res: ExpressResponse, @Param("id") id: number): Promise<ExpressResponse> {
+    async delete(@Res() res: ExpressResponse, @Param("id", ParseIntPipe) id: number): Promise<ExpressResponse> {
         const result = await this.deletarUsuarioUseCase.delete(id);
 
         return this.mapResponse(result.tipoRetorno, res, result);
     }
 
     @Get(":id")
-    async getUsuarioPorId(@Res() res: ExpressResponse, @Param("id") id: number): Promise<ExpressResponse> {
+    async getUsuarioPorId(@Res() res: ExpressResponse, @Param("id", ParseIntPipe) id: number): Promise<ExpressResponse> {
         const result = await this.buscarUsuarioPorIdUseCase.buscaPorId(id);
 
         return this.mapResponse(200, res, result);
@@ -48,8 +52,28 @@ export class UsuarioController extends BaseController {
         return this.mapResponse(result.tipoRetorno, res, result);
     }
 
+    @Put(':id/perfil')
+    async atualizarPerfil(
+        @Res() res: ExpressResponse,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: AtualizarPerfilDto
+    ): Promise<ExpressResponse> {
+        const result = await this.atualizarPerfilUseCase.executar(id, dto);
+        return this.mapResponse(result.tipoRetorno, res, result);
+    }
+
+    @Put(':id/senha')
+    async alterarSenha(
+        @Res() res: ExpressResponse,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: AlterarSenhaDto
+    ): Promise<ExpressResponse> {
+        const result = await this.alterarSenhaUseCase.executar(id, dto);
+        return this.mapResponse(result.tipoRetorno, res, result);
+    }
+
     @Put(":id")
-    async put(@Res() res: ExpressResponse, @Body() dto: UsuarioInputDto, @Param("id") id: number): Promise<ExpressResponse> {
+    async put(@Res() res: ExpressResponse, @Body() dto: UsuarioInputDto, @Param("id", ParseIntPipe) id: number): Promise<ExpressResponse> {
         const result = await this.atualizarUsuarioUseCase.atualizarUsuario(id, dto);
 
         return this.mapResponse(result.tipoRetorno, res, result);

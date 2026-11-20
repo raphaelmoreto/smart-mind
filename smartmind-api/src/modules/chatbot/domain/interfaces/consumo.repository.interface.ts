@@ -1,3 +1,10 @@
+export interface ConsumoMensal {
+    mes: string;        // 'YYYY-MM'
+    total_kwh: number;
+}
+
 export interface IConsumoRepository {
-    salvarConsumo(casaId: string, dispositivoId: string, consumoKwh: number, custo: number): Promise<void>;
+    salvarConsumo(dispositivoId: number, consumoKwh: number): Promise<void>;
+    buscarHistoricoMensal(casaId: number, meses: number): Promise<ConsumoMensal[]>;
+    buscarTemperaturaMedia(casaId: number, dias: number): Promise<number | null>;
 }

@@ -1,4 +1,3 @@
-
 CREATE TABLE "Perfil_Usuario" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	tipo VARCHAR(50) NOT NULL
@@ -83,6 +82,11 @@ INSERT INTO "Tipo_Dispositivo" (tipo)
 CREATE TABLE "Dispositivo" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	nome VARCHAR(150) NOT NULL,
+	potencia_watts DECIMAL(10,2) NOT NULL DEFAULT 0,
+    horas_uso_dia DECIMAL(4,2) NOT NULL DEFAULT 0,
+    ligado BOOLEAN NOT NULL DEFAULT FALSE,
+    foto_url TEXT NULL,
+    dt_exclusao TIMESTAMP NULL,
 	dt_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	dt_ultima_conexao TIMESTAMP NULL,
 	"fk_tipoDispositivo" INTEGER NOT NULL,
@@ -91,7 +95,11 @@ CREATE TABLE "Dispositivo" (
 
 	CONSTRAINT fk_dispositivo_casa
 		FOREIGN KEY (fk_casa)
-		REFERENCES "Casa" (id)
+		REFERENCES "Casa" (id),
+		
+	CONSTRAINT fk_dispositivo_tipo
+    	FOREIGN KEY ("fk_tipoDispositivo")
+    	REFERENCES "Tipo_Dispositivo" (id)
 );
 
 INSERT INTO "Dispositivo" (nome, dt_cadastro, dt_ultima_conexao, "fk_tipoDispositivo", fk_casa)
@@ -99,7 +107,7 @@ INSERT INTO "Dispositivo" (nome, dt_cadastro, dt_ultima_conexao, "fk_tipoDisposi
 
 CREATE TABLE "Consumo" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	consumo DECIMAL(5,2) NOT NULL,
+	consumo DECIMAL(10,3),
 	dt_medicao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	fk_dispositivo INTEGER NOT NULL,
 
@@ -144,9 +152,9 @@ INSERT INTO "Previsoes" (valor_previsto, periodo_referencia, dt_previsao, modelo
 
 CREATE TABLE "Tarifa_Energia" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	valor_kwh DECIMAL(18,2) NOT NULL,
+	valor_kwh DECIMAL(10,5),
 	bandeira VARCHAR(100) NOT NULL,
-	valor_adicional_kwh DECIMAL(18,2) DEFAULT 0,
+	valor_adicional_kwh DECIMAL(10,5),
 	dt_vigencia DATE NOT NULL,
 	fk_casa INTEGER NOT NULL,
 	
@@ -197,6 +205,28 @@ INSERT INTO "Recomendacoes" (titulo,
 						   1
 						   );
 
+CREATE TABLE "Chat_Conversa" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    titulo VARCHAR(150) NOT NULL DEFAULT 'NOVA CONVERSA',
+    dt_inicio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    dt_ultima_mensagem TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    dt_exclusao TIMESTAMP NULL,
+    fk_usuario INTEGER NOT NULL,
+    fk_casa INTEGER NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT fk_chatConversa_usuario
+        FOREIGN KEY (fk_usuario)
+        REFERENCES "Usuario" (id),
+
+    CONSTRAINT fk_chatConversa_casa
+        FOREIGN KEY (fk_casa)
+        REFERENCES "Casa" (id)
+);
+
+INSERT INTO "Chat_Conversa" (titulo, fk_usuario, fk_casa)
+					 VALUES ('Quanto consumi de energia hoje?', 1, 1);
+
 CREATE TABLE "Chat_Mensagem" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	mensagem TEXT NOT NULL,
@@ -205,6 +235,8 @@ CREATE TABLE "Chat_Mensagem" (
 	dt_mensagem TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	fk_usuario INTEGER NOT NULL,
 	fk_casa INTEGER NOT NULL,
+	fk_conversa INTEGER NULL,
+	dados JSONB NULL,
 
 	CONSTRAINT fk_chatMensagem_usuario
 		FOREIGN KEY (fk_usuario)
@@ -212,8 +244,14 @@ CREATE TABLE "Chat_Mensagem" (
 
 	CONSTRAINT fk_chatMensagem_casa
 		FOREIGN KEY (fk_casa)
-		REFERENCES "Casa" (id)
+		REFERENCES "Casa" (id),
+
+	CONSTRAINT fk_chatMensagem_conversa
+    	FOREIGN KEY (fk_conversa)
+    	REFERENCES "Chat_Conversa" (id)
 );
 
-INSERT INTO "Chat_Mensagem" (mensagem, resposta, intencao, fk_usuario, fk_casa)
-					 VALUES ('Quanto consumi de energia hoje?', 'Hoje sua residência consumiu 8,5 kWh de energia elétrica.', 'CONSULTAR_CONSUMO', 1, 1);
+CREATE INDEX idx_chatConversa_usuario ON "Chat_Conversa" (fk_usuario, dt_ultima_mensagem DESC);
+CREATE INDEX idx_chatMensagem_conversa ON "Chat_Mensagem" (fk_conversa, dt_mensagem);
+
+UPDATE "Chat_Mensagem" SET fk_conversa = 1 WHERE fk_conversa IS NULL;
