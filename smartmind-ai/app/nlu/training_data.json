@@ -1,3 +1,4 @@
+
 [
   {
     "text": "Quanto gasto com meu chuveiro?",
@@ -12,6 +13,55 @@
     "intent": "calcular_consumo"
   },
   {
+    "text": "Quero calcular o gasto de energia da geladeira",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quanto meu ventilador consome por mês?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Calcule quanto gasto usando o microondas",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Qual é o consumo elétrico da máquina de lavar?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quanto vou pagar se deixar o computador ligado?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quero saber o gasto do meu ferro de passar",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quanto de energia um aparelho de 1000 watts consome?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Calcule o custo de utilizar meu chuveiro durante uma hora",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quanto gasto deixando o ar condicionado ligado por 8 horas?",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Me ajude a calcular o consumo de um aparelho",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Quero descobrir quanto custa usar minha televisão diariamente",
+    "intent": "calcular_consumo"
+  },
+  {
+    "text": "Faça uma estimativa do consumo de energia do meu aparelho",
+    "intent": "calcular_consumo"
+  },
+
+  {
     "text": "Quero saber meu consumo mensal",
     "intent": "consultar_consumo"
   },
@@ -19,6 +69,59 @@
     "text": "Quanto minha casa gastou de energia?",
     "intent": "consultar_consumo"
   },
+  {
+    "text": "Qual foi meu consumo de energia neste mês?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Mostre quanto de energia eu consumi",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Quanto minha residência consumiu na última semana?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Quero consultar meu histórico de consumo",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Qual foi o consumo da minha casa ontem?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Me mostre meu gasto energético",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Quanto consumi de eletricidade nos últimos dias?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Como está o consumo de energia da minha residência?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Quero ver meus dados de consumo",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Minha casa está consumindo muita energia?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Consulte o consumo registrado neste mês",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Qual foi meu consumo ontem?",
+    "intent": "consultar_consumo"
+  },
+  {
+    "text": "Apresente um resumo do consumo elétrico da minha casa",
+    "intent": "consultar_consumo"
+  },
+
   {
     "text": "Qual será minha próxima conta de luz?",
     "intent": "prever_fatura"
@@ -28,6 +131,59 @@
     "intent": "prever_fatura"
   },
   {
+    "text": "Quanto vou pagar na próxima fatura?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Faça uma previsão da minha conta de energia",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Quanto deve vir minha próxima conta de luz?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Estime o valor da próxima cobrança de energia",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Quero saber quanto vou gastar no próximo mês",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Minha conta de energia vai aumentar?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Quanto provavelmente pagarei de eletricidade?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Projete meus custos de energia para o próximo mês",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Faça uma estimativa da minha próxima fatura",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Quero prever o valor da conta de luz",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Com base no meu histórico, quanto vou pagar?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Qual é a previsão de gastos da minha residência?",
+    "intent": "prever_fatura"
+  },
+  {
+    "text": "Calcule uma estimativa para minha próxima conta",
+    "intent": "prever_fatura"
+  },
+
+  {
     "text": "Como posso economizar energia?",
     "intent": "buscar_economia"
   },
@@ -36,15 +192,177 @@
     "intent": "buscar_economia"
   },
   {
+    "text": "Me dê dicas para reduzir minha conta de luz",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Como diminuir o consumo elétrico da minha casa?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quais hábitos ajudam a economizar energia?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Como gastar menos eletricidade?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quais equipamentos devo utilizar menos?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quero reduzir meus gastos com energia",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Me ajude a economizar na conta de luz",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quais são as melhores práticas para economizar energia?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Como tornar minha residência mais eficiente energeticamente?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "O que posso fazer para consumir menos energia?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Quais aparelhos estão aumentando minha conta?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Como evitar desperdício de eletricidade?",
+    "intent": "buscar_economia"
+  },
+  {
+    "text": "Me recomende maneiras de diminuir meu consumo",
+    "intent": "buscar_economia"
+  },
+
+  {
     "text": "Quais dispositivos estão cadastrados?",
     "intent": "consultar_dispositivos"
   },
+  {
+    "text": "Mostre meus aparelhos cadastrados",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quais equipamentos tenho na minha casa?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Liste todos os meus dispositivos",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quero consultar meus aparelhos",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quais dispositivos estão registrados no sistema?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Me mostre os equipamentos da minha residência",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Tenho quais aparelhos cadastrados?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Consulte a lista de dispositivos da minha casa",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quero visualizar meus equipamentos",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quais aparelhos estão vinculados à minha residência?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Exiba meus dispositivos cadastrados",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quantos aparelhos tenho registrados?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quais são os dispositivos da minha casa?",
+    "intent": "consultar_dispositivos"
+  },
+  {
+    "text": "Quero ver todos os aparelhos cadastrados",
+    "intent": "consultar_dispositivos"
+  },
+
   {
     "text": "Oi",
     "intent": "saudacao"
   },
   {
     "text": "Olá, tudo bem?",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Bom dia",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Boa tarde",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Boa noite",
+    "intent": "saudacao"
+  },
+  {
+    "text": "E aí, tudo certo?",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Olá assistente",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Oi, SmartMind",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Tudo bem por aí?",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Como vai?",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Olá, bom dia",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Oi, preciso de ajuda",
+    "intent": "saudacao"
+  },
+  {
+    "text": "E aí",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Saudações",
+    "intent": "saudacao"
+  },
+  {
+    "text": "Tudo tranquilo?",
     "intent": "saudacao"
   }
 ]
