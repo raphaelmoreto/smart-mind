@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 
 import ChatInput from "../../components/chatbot/ChatInput.jsx";
@@ -68,20 +68,25 @@ export default function Chatbot() {
 
     const fimDaListaRef = useRef(null);
 
-    const carregarConversas = useCallback(async () => {
-        if (!usuarioId) return;
+    async function carregarConversas() {
         try {
             setConversas((await chatbotService.listarConversas(usuarioId)) ?? []);
         } catch {
-            // A LISTA LATERAL NÃO É CRÍTICA: SE FALHAR, O CHAT CONTINUA FUNCIONANDO
-        } finally {
-            setCarregandoConversas(false);
+            // A LISTA LATERAL NÃO É CRÍTICA
         }
-    }, [usuarioId]);
+    }
 
     useEffect(() => {
-        carregarConversas();
-    }, [carregarConversas]);
+        if (!usuarioId) return;
+        let ignorar = false;
+
+        chatbotService.listarConversas(usuarioId)
+            .then((lista) => { if (!ignorar) setConversas(lista ?? []); })
+            .catch(() => {})
+            .finally(() => { if (!ignorar) setCarregandoConversas(false); });
+
+        return () => { ignorar = true; };
+    }, [usuarioId]);
 
     // AUTO-SCROLL PARA A ÚLTIMA MENSAGEM
     useEffect(() => {

@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const [perfil, setPerfil] = useState({ nome: "", usuario: "", email: "" });
   const [senhas, setSenhas] = useState(senhasVazias);
   const [casa, setCasa] = useState(casaVazia);
+  const [casaOrigem, setCasaOrigem] = useState(null);
   const [tarifa, setTarifa] = useState({ valor_kwh: "", bandeira: "VERDE" });
   const [tarifaOriginal, setTarifaOriginal] = useState(null);
   const [preferencias, setPreferencias] = useLocalStorageState("smartmind-preferencias", {
@@ -34,6 +35,18 @@ export default function SettingsPage() {
   const [mensagem, setMensagem] = useState(null); // { tipo: "ok" | "erro", texto }
   const [salvando, setSalvando] = useState("");   // "perfil" | "senha" | "casa"
   const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+
+  if (casaAtual && casaAtual !== casaOrigem) {
+    setCasaOrigem(casaAtual);
+    setCasa({
+      nome: casaAtual.nome ?? "",
+      rua: casaAtual.rua ?? "",
+      numero: casaAtual.numero ?? "",
+      bairro: casaAtual.bairro ?? "",
+      cidade: casaAtual.cidade ?? "",
+      cep: casaAtual.cep?.trim() ?? "",
+    });
+  }
 
   // ---------- CARREGA PERFIL ----------
   useEffect(() => {
@@ -49,25 +62,19 @@ export default function SettingsPage() {
   // ---------- CARREGA CASA + TARIFA ----------
   useEffect(() => {
     if (!casaAtual) return;
-
-    setCasa({
-      nome: casaAtual.nome ?? "",
-      rua: casaAtual.rua ?? "",
-      numero: casaAtual.numero ?? "",
-      bairro: casaAtual.bairro ?? "",
-      cidade: casaAtual.cidade ?? "",
-      cep: casaAtual.cep?.trim() ?? "",
-    });
+    let ignorar = false;
 
     casaService
       .buscarTarifa(casaAtual.id)
       .then((dados) => {
-        if (!dados) return;
+        if (ignorar || !dados) return;
         const valor = { valor_kwh: String(dados.valor_kwh), bandeira: dados.bandeira };
         setTarifa(valor);
         setTarifaOriginal(valor);
       })
       .catch(() => {});
+
+    return () => { ignorar = true; };
   }, [casaAtual]);
 
   // EXECUTA UMA AÇÃO MOSTRANDO "SALVANDO..." E A MENSAGEM DE RESULTADO
