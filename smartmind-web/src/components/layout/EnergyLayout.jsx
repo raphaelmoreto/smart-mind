@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { EnergyThemeContext } from "./EnergyTheme.js";
-import AppSidebar from "./AppSidebar.jsx";
-import { navigationItems } from "./navigation.js";
+import { EnergyThemeContext } from "../../contexts/EnergyTheme.js";
+import AppSidebar from "../energy/AppSidebar.jsx";
+import { navigationItems } from "../../config/navigation.js";
 import { useLocation } from "react-router";
 import "../../pages/Home/HomePage.css";
 import "./EnergyLayout.css";

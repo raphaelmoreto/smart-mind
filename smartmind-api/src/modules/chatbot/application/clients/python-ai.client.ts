@@ -4,6 +4,12 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { isAxiosError } from 'axios';
 
+// TIPOS E APARELHOS QUE O PYTHON DEVE PROCURAR NA FRASE
+export interface CatalogoNlu {
+    types: { id: number; nome: string; sinonimos: string[] }[];
+    devices: { id: number; nome: string; tipo_id: number }[];
+}
+
 @Injectable()
 export class PythonAiClient {
 
@@ -16,19 +22,15 @@ export class PythonAiClient {
         return this.configService.get<string>('AI_URL') ?? 'http://localhost:8000';
     }
 
-    async processarMensagem(mensagem: string) {
+    async processarMensagem(mensagem: string, catalogo?: CatalogoNlu) {
         try {
             const response = await firstValueFrom(
-                this.httpService.post(
-                    `${this.baseUrl}/nlu/parse`,
-                    {
-                        message: mensagem,
-                    },
-                ),
+                this.httpService.post(`${this.baseUrl}/nlu/parse`, {
+                    message: mensagem,
+                    catalog: catalogo,
+                }),
             );
-
             return response.data;
-
         } catch (error: unknown) {
             if (isAxiosError(error)) {
                 console.log(

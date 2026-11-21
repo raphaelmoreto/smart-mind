@@ -6,12 +6,37 @@ from app.ml.predictor import predict_consumption
 from app.nlu.processor import process_message
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List, Optional
+from app.nlu.processor import load_model, process_message, train_model
+# (mantenha os outros imports)
 
 app = FastAPI(
     title = "SmartMind AI",
     description = "Microsserviço de inteligência artificial do SmartMind",
     version = "1.0.0"
 )
+
+class TipoCatalogo(BaseModel):
+    id: int
+    nome: str
+    sinonimos: List[str] = []
+
+
+class DispositivoCatalogo(BaseModel):
+    id: int
+    nome: str
+    tipo_id: Optional[int] = None
+
+
+class Catalogo(BaseModel):
+    types: List[TipoCatalogo] = []
+    devices: List[DispositivoCatalogo] = []
+
+
+class MessageRequest(BaseModel):
+    message: str
+    catalog: Optional[Catalogo] = None
+
 
 class MessageRequest(BaseModel):
     message: str
@@ -56,11 +81,15 @@ def predict(request: PredictionRequest):
 @app.post("/nlu/parse")
 def parse_message(request: MessageRequest):
     if not request.message.strip():
-        raise HTTPException(
-            status_code = 400,
-            detail = "Mensagem não pode ser vazia"
-        )
+        raise HTTPException(status_code=400, detail="Mensagem não pode ser vazia")
 
-    result = process_message(request.message)
+    catalog = request.catalog.model_dump() if request.catalog else None
+    return process_message(request.message, catalog)
 
-    return result
+
+# RETREINA SEM PRECISAR APAGAR O .pkl NA MÃO (USE DEPOIS DE EDITAR O training_data.json)
+@app.post("/nlu/train")
+def retrain():
+    train_model()
+    load_model.cache_clear()
+    return {"status": "modelo de intenções treinado novamente"}

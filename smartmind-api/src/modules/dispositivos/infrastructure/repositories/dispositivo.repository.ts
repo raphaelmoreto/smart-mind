@@ -69,7 +69,16 @@ export class DispositivoRepository implements IDispositivoRepository {
     }
 
     async getTipos(): Promise<TipoDispositivoOutputDto[]> {
-        return this.repository.query(`SELECT id, tipo FROM "Tipo_Dispositivo" ORDER BY tipo`);
+        return this.repository.query(
+            `SELECT id,
+                    tipo,
+                    sinonimos,
+                    potencia_media_watts::float AS potencia_media_watts,
+                    horas_uso_tipicas::float    AS horas_uso_tipicas,
+                    fica_em_standby
+             FROM "Tipo_Dispositivo"
+             ORDER BY tipo`
+        );
     }
 
     async alterarEstado(id: number, ligado: boolean): Promise<boolean> {

@@ -37,6 +37,16 @@ export class ChatbotContextDto {
     @IsOptional()
     @IsString()
     pending_intent?: string;
+
+    @IsOptional()
+    @IsInt()
+    @IsPositive()
+    device_id?: number;          // APARELHO CADASTRADO PELO USUÁRIO
+
+    @IsOptional()
+    @IsInt()
+    @IsPositive()
+    device_type_id?: number;    // TIPO (Tipo_Dispositivo.id)
 }
 
 export class ChatbotInputDto {

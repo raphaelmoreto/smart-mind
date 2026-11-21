@@ -8,6 +8,7 @@ import {
 } from "../../components/energy/EnergyComponents.jsx";
 import { useCasaAtual } from "../../hooks/useCasaAtual.js";
 import { dispositivoService } from "../../services/dispositivo-service.js";
+import { reconhecerTipo } from "../../utils/dispositivoMapper.js";
 import "./DevicesPage.css";
 
 const TAMANHO_MAXIMO_FOTO = 1.5 * 1024 * 1024; // 1,5 MB
@@ -63,11 +64,38 @@ function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
   );
   const [error, setError] = useState("");
 
+  const [manuais, setManuais] = useState(() =>
+    device
+      ? { fk_tipoDispositivo: true, potenciaW: true, horasUsoDia: true }
+      : {},
+  );
+  const [tipoReconhecido, setTipoReconhecido] = useState(null);
+
   function updateField(event) {
     const { name, value, type, checked } = event.target;
+    const valor = type === "checkbox" ? checked : value;
+
+    if (name !== "nome") {
+      setManuais((atual) => ({ ...atual, [name]: true }));
+      setForm((current) => ({ ...current, [name]: valor }));
+      return;
+    }
+
+    // RECONHECE O TIPO PELO NOME DIGITADO E PREENCHE COM A MÉDIA DO TIPO
+    const tipo = reconhecerTipo(valor, tipos);
+    setTipoReconhecido(tipo);
+
     setForm((current) => ({
       ...current,
-      [name]: type === "checkbox" ? checked : value,
+      nome: valor,
+      ...(tipo &&
+        !manuais.fk_tipoDispositivo && { fk_tipoDispositivo: String(tipo.id) }),
+      ...(tipo?.potencia_media_watts &&
+        !manuais.potenciaW && { potenciaW: String(tipo.potencia_media_watts) }),
+      ...(tipo?.horas_uso_tipicas != null &&
+        !manuais.horasUsoDia && {
+          horasUsoDia: String(tipo.horas_uso_tipicas),
+        }),
     }));
   }
 
@@ -107,6 +135,14 @@ function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
     <form onSubmit={submit}>
       <div className="energy-form-grid">
         <FormField label="Nome do dispositivo" htmlFor="device-name">
+          {tipoReconhecido && !manuais.fk_tipoDispositivo && (
+            <small className="energy-hint">
+              Reconhecido como <strong>{tipoReconhecido.tipo}</strong>. Potência
+              e horas foram preenchidas com a média desse tipo. Ajuste se souber
+              o valor exato.
+            </small>
+          )}
+
           <input
             className="energy-input"
             id="device-name"

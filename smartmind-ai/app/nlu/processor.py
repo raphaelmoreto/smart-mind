@@ -1,55 +1,54 @@
 import json
+import random
 import re
-import unicodedata
 from functools import lru_cache
 from pathlib import Path
 
 import joblib
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.svm import LinearSVC
+
+from app.nlu.augmentation import gerar_erros_digitacao
+from app.nlu.device_matcher import encontrar_dispositivo
+from app.nlu.text import normalize
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_PATH = BASE_DIR / "nlu_model.pkl"
 DATA_PATH = BASE_DIR / "training_data.json"
 
-# NOME PADRONIZADO -> FORMAS QUE O USUÁRIO PODE ESCREVER (JÁ NORMALIZADAS)
-DEVICES = {
-    "ar-condicionado": ["ar condicionado", "split"],
-    "chuveiro": ["chuveiro", "ducha"],
-    "geladeira": ["geladeira", "refrigerador", "freezer"],
-    "televisao": ["televisao", "televisor", "tv"],
-    "microondas": ["microondas", "micro ondas"],
-    "ventilador": ["ventilador"],
-    "computador": ["computador", "notebook", "pc"],
-    "maquina de lavar": ["maquina de lavar", "lavadora"],
-    "ferro de passar": ["ferro de passar"],
-}
-
-
-def normalize(text: str) -> str:
-    text = text.lower().strip()
-    text = unicodedata.normalize("NFD", text)
-    text = "".join(char for char in text if unicodedata.category(char) != "Mn")
-    text = re.sub(r"[-_]", " ", text)      # "ar-condicionado" -> "ar condicionado"
-    return re.sub(r"\s+", " ", text)
+VARIANTES_POR_FRASE = 2
 
 
 def train_model():
     with open(DATA_PATH, encoding="utf-8") as file:
         data = json.load(file)
 
-    texts = [normalize(item["text"]) for item in data]
-    labels = [item["intent"] for item in data]
+    rng = random.Random(42)  # SEMENTE FIXA: O TREINO SAI SEMPRE IGUAL
+    textos, rotulos = [], []
+
+    for item in data:
+        texto = normalize(item["text"])
+        textos.append(texto)
+        rotulos.append(item["intent"])
+
+        # FRASES COM ERRO DE DIGITAÇÃO GERADAS AUTOMATICAMENTE
+        for variante in gerar_erros_digitacao(texto, VARIANTES_POR_FRASE, rng):
+            textos.append(variante)
+            rotulos.append(item["intent"])
 
     model = Pipeline([
-        ("tfidf", TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True)),
-        # CalibratedClassifierCV DÁ UMA "PROBABILIDADE" PARA CADA INTENÇÃO (predict_proba)
+        ("features", FeatureUnion([
+            # PALAVRAS INTEIRAS E PARES DE PALAVRAS ("quanto gasta")
+            ("palavras", TfidfVectorizer(ngram_range=(1, 2), sublinear_tf=True)),
+            # PEDAÇOS DE 2 A 5 LETRAS ("chu", "huve", "veir"): "chuverio" AINDA PARECE "chuveiro"
+            ("letras", TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), sublinear_tf=True)),
+        ])),
         ("classifier", CalibratedClassifierCV(LinearSVC(), cv=3)),
     ])
 
-    model.fit(texts, labels)
+    model.fit(textos, rotulos)
     joblib.dump(model, MODEL_PATH)
     return model
 
@@ -61,7 +60,7 @@ def load_model():
     return joblib.load(MODEL_PATH)
 
 
-def extract_entities(message: str):
+def extract_entities(message: str, catalog: dict | None = None):
     text = normalize(message)
     entities = {}
 
@@ -87,20 +86,17 @@ def extract_entities(message: str):
     elif "meia hora" in text:
         entities["hours_per_day"] = 0.5
 
-    # APARELHO (PALAVRA INTEIRA PARA "tv" NÃO CASAR DENTRO DE OUTRA PALAVRA)
-    for normalized_device, terms in DEVICES.items():
-        if any(re.search(rf"\b{re.escape(term)}\b", text) for term in terms):
-            entities["device"] = normalized_device
-            break
-
     days = re.search(r"(\d+)\s*dias?\s*(?:por|no|ao)\s*mes", text)
     if days:
         entities["days_per_month"] = int(days.group(1))
 
+    # APARELHO: VEM DO CATÁLOGO DO BANCO, COM TOLERÂNCIA A ERRO
+    entities.update(encontrar_dispositivo(message, catalog))
+
     return entities
 
 
-def process_message(message: str):
+def process_message(message: str, catalog: dict | None = None):
     model = load_model()
     normalized = normalize(message)
 
@@ -110,5 +106,5 @@ def process_message(message: str):
     return {
         "intent": str(model.classes_[index]),
         "confidence": round(float(probabilities[index]), 3),
-        "entities": extract_entities(message),
+        "entities": extract_entities(message, catalog),
     }

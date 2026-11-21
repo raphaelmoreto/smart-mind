@@ -64,4 +64,8 @@ export class DispositivoOutputDto {
 export class TipoDispositivoOutputDto {
     @ApiProperty() id: number;
     @ApiProperty() tipo: string;
+    @ApiProperty({ type: [String] }) sinonimos: string[];
+    @ApiProperty({ nullable: true }) potencia_media_watts: number | null;
+    @ApiProperty({ nullable: true }) horas_uso_tipicas: number | null;
+    @ApiProperty() fica_em_standby: boolean;
 }

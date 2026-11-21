@@ -1,3 +1,5 @@
+--CREATE DATABASE smart_mind;
+
 CREATE TABLE "Perfil_Usuario" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	tipo VARCHAR(50) NOT NULL
@@ -49,35 +51,46 @@ INSERT INTO "Casa" (nome, rua, bairro, cidade, numero, cep, dt_cadastro, dt_excl
 
 CREATE TABLE "Tipo_Dispositivo" (
     id SERIAL PRIMARY KEY,
-    tipo VARCHAR(100) NOT NULL
+    tipo VARCHAR(100) NOT NULL,
+	sinonimos TEXT[] NOT NULL DEFAULT '{}',
+    potencia_media_watts DECIMAL(10,2) NULL,
+    horas_uso_tipicas DECIMAL(4,2) NULL,
+    fica_em_standby BOOLEAN NOT NULL DEFAULT FALSE
 );
 
-INSERT INTO "Tipo_Dispositivo" (tipo)
-						VALUES ('LAMPADA'),
-							   ('INTERRUPTOR'),
-							   ('TOMADA'),
-							   ('AR CONDICIONADO'),
-							   ('VENTILADOR'),
-							   ('TELEVISAO'),
-							   ('GELADEIRA'),
-							   ('MAQUINA DE LAVAR'),
-							   ('FORNO'),
-							   ('MICRO-ONDAS'),
-							   ('CAFETEIRA'),
-							   ('ASPIRADOR DE PO'),
-							   ('CAMERA DE SEGURANCA'),
-							   ('FECHADURA INTELIGENTE'),
-							   ('CAMPAINHA INTELIGENTE'),
-							   ('SENSOR DE MOVIMENTO'),
-							   ('SENSOR DE TEMPERATURA'),
-							   ('SENSOR DE UMIDADE'),
-							   ('SENSOR DE FUMACA'),
-							   ('SENSOR DE PRESENCA'),
-							   ('TERMOSTATO'),
-							   ('ALARME'),
-							   ('ROTEADOR'),
-							   ('CAIXA DE SOM'),
-							   ('PERSIANA INTELIGENTE');
+INSERT INTO "Tipo_Dispositivo" (tipo, sinonimos, potencia_media_watts, horas_uso_tipicas, fica_em_standby)
+						VALUES ('LAMPADA', ARRAY['lampada','luminaria','abajur','spot','lustre'], 9, 6, FALSE),
+							   ('INTERRUPTOR', ARRAY['interruptor'], 1, 24, TRUE),
+							   ('TOMADA', ARRAY['tomada','tomada inteligente'], 2, 24, TRUE),
+							   ('AR CONDICIONADO', ARRAY['ar condicionado','ar','split','climatizador'], 1400, 8, TRUE),
+							   ('VENTILADOR', ARRAY['ventilador','ventilador de teto'], 100, 8, FALSE),
+							   ('TELEVISAO', ARRAY['televisao','televisor','tv','smart tv'], 100, 5, TRUE),
+							   ('GELADEIRA', ARRAY['geladeira','refrigerador','freezer','frigobar'], 60, 24, FALSE),
+							   ('MAQUINA DE LAVAR', ARRAY['maquina de lavar','lavadora','lava roupas'], 500, 1, FALSE),
+							   ('FORNO', ARRAY['forno','forno eletrico'], 1500, 0.5, FALSE),
+							   ('MICRO-ONDAS', ARRAY['microondas','micro ondas'], 1200, 0.25, TRUE),
+							   ('CAFETEIRA', ARRAY['cafeteira'], 800, 0.3, FALSE),
+							   ('ASPIRADOR DE PO', ARRAY['aspirador','aspirador de po'], 1000, 0.3, FALSE),
+							   ('CAMERA DE SEGURANCA', ARRAY['camera','camera de seguranca'], 5, 24, FALSE),
+							   ('FECHADURA INTELIGENTE', ARRAY['fechadura'], 3, 24, FALSE),
+							   ('CAMPAINHA INTELIGENTE', ARRAY['campainha'], 3, 24, FALSE),
+							   ('SENSOR DE MOVIMENTO', ARRAY['sensor de movimento'], 1, 24, FALSE),
+							   ('SENSOR DE TEMPERATURA', ARRAY['sensor de temperatura'], 1, 24, FALSE),
+							   ('SENSOR DE UMIDADE', ARRAY['sensor de umidade'], 1, 24, FALSE),
+							   ('SENSOR DE FUMACA', ARRAY['sensor de fumaca'], 1, 24, FALSE),
+							   ('SENSOR DE PRESENCA', ARRAY['sensor de presenca'], 1, 24, FALSE),
+							   ('TERMOSTATO', ARRAY['termostato'], 2, 24, FALSE),
+							   ('ALARME', ARRAY['alarme'], 5, 24, FALSE),
+							   ('ROTEADOR', ARRAY['roteador','modem','wifi'], 10, 24, FALSE),
+							   ('CAIXA DE SOM', ARRAY['caixa de som','alexa','echo','som'], 15, 4, TRUE),
+							   ('PERSIANA INTELIGENTE', ARRAY['persiana','cortina'], 30, 0.1, FALSE),
+							   ('CHUVEIRO', ARRAY['chuveiro','ducha'], 5500, 0.5, FALSE),
+							   ('COMPUTADOR', ARRAY['computador','notebook','pc','desktop'], 150, 6, TRUE),
+							   ('FERRO DE PASSAR', ARRAY['ferro de passar','ferro'], 1000, 0.5, FALSE),
+							   ('AQUECEDOR', ARRAY['aquecedor'], 1500, 4, FALSE),
+							   ('SECADOR DE CABELO', ARRAY['secador','secador de cabelo'], 1200, 0.2, FALSE),
+							   ('VIDEOGAME', ARRAY['videogame','playstation','xbox','console'], 150, 3, TRUE);
+
 
 CREATE TABLE "Dispositivo" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -204,6 +217,60 @@ INSERT INTO "Recomendacoes" (titulo,
 						   2,
 						   1
 						   );
+
+CREATE TABLE "Dica_Economia" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    texto TEXT NOT NULL,
+    min_horas_dia   DECIMAL(4,2)  NULL,   -- SÓ MOSTRA SE O USO DIÁRIO FOR >= ISSO
+    min_consumo_kwh DECIMAL(10,2) NULL,   -- SÓ MOSTRA SE O CONSUMO MENSAL FOR >= ISSO
+    "fk_tipoDispositivo" INTEGER NULL,    -- NULL = DICA GERAL (VALE PARA QUALQUER APARELHO)
+    fk_prioridade INTEGER NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT fk_dica_tipo
+        FOREIGN KEY ("fk_tipoDispositivo")
+        REFERENCES "Tipo_Dispositivo" (id),
+
+    CONSTRAINT fk_dica_prioridade
+        FOREIGN KEY (fk_prioridade)
+        REFERENCES "Prioridade" (id)
+);
+
+CREATE INDEX idx_dica_tipo ON "Dica_Economia" ("fk_tipoDispositivo");
+
+-- MIGRA AS DICAS QUE ESTAVAM NO economia.ts + NOVAS
+-- (tipo = NULL → dica geral)
+INSERT INTO "Dica_Economia" (texto, min_horas_dia, "fk_tipoDispositivo", fk_prioridade)
+SELECT v.texto, v.min_horas, t.id, p.id
+FROM (VALUES
+    ('AR CONDICIONADO', 'Configure a temperatura entre 23 °C e 25 °C: cada grau a menos aumenta o consumo.', NULL::numeric, 'ALTA'),
+    ('AR CONDICIONADO', 'Mantenha portas e janelas fechadas durante o funcionamento.',                   NULL, 'MÉDIA'),
+    ('AR CONDICIONADO', 'Limpe os filtros a cada 15 dias: filtro sujo força o compressor.',              NULL, 'MÉDIA'),
+    ('AR CONDICIONADO', 'Use o timer para desligar o aparelho de madrugada.',                            8,    'ALTA'),
+    ('CHUVEIRO',        'Use a posição "verão" nos dias quentes: ela consome cerca de 30% menos.',       NULL, 'ALTA'),
+    ('CHUVEIRO',        'Banhos de até 8 minutos já fazem grande diferença na conta.',                  0.25, 'ALTA'),
+    ('CHUVEIRO',        'Evite banhos no horário de pico (18h às 21h).',                                NULL, 'BAIXA'),
+    ('GELADEIRA',       'Verifique a borracha de vedação: feche a porta sobre uma folha de papel; se ela escorregar, troque a borracha.', NULL, 'ALTA'),
+    ('GELADEIRA',       'Evite abrir a porta com frequência.',                                          NULL, 'MÉDIA'),
+    ('GELADEIRA',       'Não coloque alimentos quentes dentro dela.',                                   NULL, 'MÉDIA'),
+    ('GELADEIRA',       'Deixe uns 15 cm de espaço atrás dela para ventilação.',                        NULL, 'BAIXA'),
+    ('TELEVISAO',       'Ative o modo de economia de energia e reduza o brilho.',                       NULL, 'MÉDIA'),
+    ('TELEVISAO',       'Configure o desligamento automático por inatividade.',                         4,    'MÉDIA'),
+    ('MICRO-ONDAS',     'Desligue da tomada quando não usar: o relógio do painel consome o mês inteiro.', NULL, 'BAIXA'),
+    ('VENTILADOR',      'Desligue quando não houver ninguém no ambiente.',                              NULL, 'BAIXA'),
+    ('COMPUTADOR',      'Ative a suspensão automática após 10 minutos sem uso.',                        NULL, 'MÉDIA'),
+    ('COMPUTADOR',      'Desligue monitor e computador ao final do dia.',                               8,    'ALTA'),
+    ('MAQUINA DE LAVAR','Lave com a carga máxima recomendada e prefira água fria.',                     NULL, 'MÉDIA'),
+    ('FERRO DE PASSAR', 'Junte bastante roupa e passe tudo de uma vez.',                                NULL, 'MÉDIA'),
+    ('LAMPADA',         'Troque lâmpadas antigas por LED: economia de até 80%.',                        NULL, 'ALTA'),
+    ('LAMPADA',         'Aproveite a luz natural durante o dia.',                                       NULL, 'BAIXA'),
+    ('FORNO',           'Evite abrir a porta do forno durante o preparo.',                              NULL, 'MÉDIA'),
+    ('AQUECEDOR',       'Mantenha o ambiente fechado e use o termostato no mínimo confortável.',        NULL, 'ALTA'),
+    (NULL,              'Ao comprar aparelhos novos, prefira os que têm selo Procel A.',                NULL, 'BAIXA'),
+    (NULL,              'Evite usar vários aparelhos de alta potência ao mesmo tempo no horário de pico (18h às 21h).', NULL, 'BAIXA')
+) AS v(tipo, texto, min_horas, prioridade)
+LEFT JOIN "Tipo_Dispositivo" t ON t.tipo = v.tipo
+INNER JOIN "Prioridade" p ON p.prioridade = v.prioridade;
 
 CREATE TABLE "Chat_Conversa" (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

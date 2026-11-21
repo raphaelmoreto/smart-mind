@@ -11,7 +11,8 @@ import type { IDispositivoRepository } from '../../../dispositivos/domain/interf
 
 import { TARIFA_REPOSITORY, CONSUMO_REPOSITORY, CHAT_HISTORY_REPOSITORY } from '../../chatbot.constants.js';
 import { DISPOSITIVO_REPOSITORY } from '../../../dispositivos/dispositivos.constants.js';
-import { ChatbotInputDto } from '../../domain/dto/chatbot.dto.js';
+import { ChatbotContextDto, ChatbotInputDto } from '../../domain/dto/chatbot.dto.js';
+import type { DispositivoOutputDto, TipoDispositivoOutputDto } from '../../../dispositivos/domain/dto/dispositivo.dto.js';
 import type { ChatbotResposta } from '../../domain/dto/chatbot.dto.js';
 
 // ABAIXO DISSO O BOT ASSUME QUE NÃO ENTENDEU (AJUSTE TESTANDO NO SWAGGER)
@@ -30,11 +31,22 @@ const SUGESTOES_INICIAIS = [
 
 type EntidadesChat = {
     device?: string;
+    device_id?: number;
+    device_type_id?: number;
     power_watts?: number;
     hours_per_day?: number;
     days_per_month?: number;
     tariff?: number;
 };
+
+// CARREGADO UMA VEZ POR MENSAGEM E REPASSADO PARA OS MÉTODOS
+type Catalogo = {
+    tipos: TipoDispositivoOutputDto[];
+    dispositivos: DispositivoOutputDto[];
+};
+
+const formatarHoras = (horas: number) =>
+    horas < 1 ? `${Math.round(horas * 60)} minutos` : `${String(horas).replace('.', ',')} horas`;
 
 @Injectable()
 export class ChatbotUseCase {
@@ -105,18 +117,43 @@ export class ChatbotUseCase {
     // INTERPRETA A MENSAGEM E DECIDE O QUE RESPONDER
     // =====================================================================
     private async gerarResposta(dto: ChatbotInputDto): Promise<ChatbotResposta> {
-        const nlu = await this.pythonAiClient.processarMensagem(dto.message);
+        // 1) CATÁLOGO = TIPOS DO BANCO (COM SINÔNIMOS) + APARELHOS CADASTRADOS NA CASA
+        const [tipos, dispositivos] = await Promise.all([
+            this.dispositivoRepository.getTipos(),
+            this.dispositivoRepository.getAllByCasa(dto.casaId),
+        ]);
+        const catalogo: Catalogo = { tipos, dispositivos };
+
+        const nlu = await this.pythonAiClient.processarMensagem(dto.message, {
+            types: tipos.map((t) => ({ id: t.id, nome: t.tipo, sinonimos: t.sinonimos ?? [] })),
+            devices: dispositivos.map((d) => ({ id: d.id, nome: d.nome, tipo_id: d.fk_tipoDispositivo })),
+        });
+
         const nluEntities = nlu.entities ?? {};
         const contexto = dto.context ?? {};
 
-        // JUNTA O QUE VEIO NA FRASE NOVA COM O QUE JÁ ESTAVA NO CONTEXTO
+        // 2) SE A FRASE FALA DE OUTRO APARELHO, NÃO REAPROVEITA POTÊNCIA/HORAS DO ANTERIOR
+        //    (antes: "quanto gasta o chuveiro?" → "e a geladeira?" usava os 5500 W do chuveiro)
+        const trocouAparelho = Boolean(nluEntities.device) && nluEntities.device !== contexto.device;
+        const base: ChatbotContextDto = trocouAparelho ? {} : contexto;
+
         const entities: EntidadesChat = {
             device: nluEntities.device ?? contexto.device,
-            power_watts: nluEntities.potencia_watts ?? nluEntities.power_watts ?? contexto.power_watts,
-            hours_per_day: nluEntities.hours_per_day ?? nluEntities.horas_por_dia ?? contexto.hours_per_day,
-            days_per_month: nluEntities.days_per_month ?? nluEntities.dias_por_mes ?? contexto.days_per_month,
+            device_id: nluEntities.device_id ?? base.device_id,
+            device_type_id: nluEntities.device_type_id ?? base.device_type_id,
+            power_watts: nluEntities.potencia_watts ?? base.power_watts,
+            hours_per_day: nluEntities.hours_per_day ?? base.hours_per_day,
+            days_per_month: nluEntities.days_per_month ?? base.days_per_month,
             tariff: contexto.tariff,
         };
+
+        // 3) APARELHO CADASTRADO → JÁ SABEMOS O TIPO, A POTÊNCIA E AS HORAS DE USO
+        const cadastrado = dispositivos.find((d) => d.id === entities.device_id);
+        if (cadastrado) {
+            entities.device_type_id ??= cadastrado.fk_tipoDispositivo;
+            entities.power_watts ??= cadastrado.potencia_watts || undefined;
+            entities.hours_per_day ??= cadastrado.horas_uso_dia || undefined;
+        }
 
         let intent: string = nlu.intent ?? 'desconhecido';
         const confianca = Number(nlu.confidence ?? 1);
@@ -167,10 +204,10 @@ export class ChatbotUseCase {
                 return this.responderPrevisao(dto.casaId);
 
             case 'buscar_economia':
-                return this.responderEconomia(entities);
+                return this.responderEconomia(dto.casaId, entities, catalogo);
 
             case 'calcular_consumo':
-                return this.responderCalculo(dto.casaId, entities);
+                return this.responderCalculo(dto.casaId, entities, catalogo);
 
             default:
                 return {
@@ -198,30 +235,64 @@ export class ChatbotUseCase {
         const dias = Number(entities.days_per_month);
         if (Number.isInteger(dias) && dias >= 1 && dias <= 31) ctx.days_per_month = dias;
 
+        if (Number.isInteger(entities.device_id) && entities.device_id! > 0) ctx.device_id = entities.device_id;
+
+        if (Number.isInteger(entities.device_type_id) && entities.device_type_id! > 0) ctx.device_type_id = entities.device_type_id;
+
         if (pendingIntent) ctx.pending_intent = pendingIntent;
 
         return ctx;
     }
 
+    private tipoDoAparelho(entities: EntidadesChat, catalogo: Catalogo) {
+        return catalogo.tipos.find((t) => t.id === entities.device_type_id);
+    }
+
+    private nomeDoAparelho(entities: EntidadesChat, catalogo: Catalogo): string {
+        const cadastrado = catalogo.dispositivos.find((d) => d.id === entities.device_id);
+        return (cadastrado?.nome ?? entities.device ?? 'aparelho').toLowerCase();
+    }
+
+    // SUGESTÕES DE "QUAL APARELHO?" A PARTIR DO QUE O USUÁRIO TEM CADASTRADO
+    private aparelhosSugeridos(catalogo: Catalogo): string[] {
+        const cadastrados = catalogo.dispositivos.slice(0, 4).map((d) => d.nome.toLowerCase());
+        return cadastrados.length ? cadastrados : ['Chuveiro', 'Ar-condicionado', 'Geladeira', 'Televisão'];
+    }
+
     // ---------------------------------------------------------------------
-    private async responderCalculo(casaId: number, entities: EntidadesChat): Promise<ChatbotResposta> {
+    private async responderCalculo(casaId: number, entities: EntidadesChat, catalogo: Catalogo): Promise<ChatbotResposta> {
+        const tipo = this.tipoDoAparelho(entities, catalogo);
+        const nome = this.nomeDoAparelho(entities, catalogo);
+
         const missing: string[] = [];
         if (!entities.device) missing.push('qual é o aparelho');
         if (!entities.power_watts) missing.push('a potência em watts (ex.: 1500 W)');
         if (!entities.hours_per_day) missing.push('quanto tempo ele fica ligado por dia (ex.: 2 horas)');
 
         if (missing.length > 0) {
+            // SUGESTÕES AUTOMÁTICAS DE RESPOSTA COM A MÉDIA DO TIPO
+            const quickReplies: string[] = [];
+            if (!entities.device) quickReplies.push(...this.aparelhosSugeridos(catalogo));
+            if (!entities.power_watts && tipo?.potencia_media_watts) quickReplies.push(`Usar ${tipo.potencia_media_watts} W`);
+            if (!entities.hours_per_day && tipo?.horas_uso_tipicas) quickReplies.push(`${formatarHoras(tipo.horas_uso_tipicas)} por dia`);
+
+            const dicaMedia = !entities.power_watts && tipo?.potencia_media_watts
+                ? ` Se não souber, um(a) ${tipo.tipo.toLowerCase()} costuma ter cerca de ${tipo.potencia_media_watts} W.`
+                : '';
+
             return {
-                message: `Para calcular o consumo, preciso saber ${missing.join(', ')}.`,
+                message: `Para calcular o consumo, preciso saber ${missing.join(', ')}.${dicaMedia}`,
                 intent: 'calcular_consumo',
                 entities,
                 missing,
+                quick_replies: quickReplies,
                 context: this.montarContexto(entities, 'calcular_consumo'),
             };
         }
 
+        const tarifaVigente = await this.tarifaRepository.buscarTarifaVigente(casaId);
         const days = Number(entities.days_per_month ?? 30);
-        const tariff = Number(entities.tariff ?? await this.tarifaRepository.buscarTarifaAtual(casaId));
+        const tariff = Number(entities.tariff ?? tarifaVigente.valorTotalKwh);
         const power = Number(entities.power_watts);
         const hours = Number(entities.hours_per_day);
 
@@ -234,16 +305,31 @@ export class ChatbotUseCase {
             return {
                 message: 'Os dados informados parecem inválidos. Lembre que o uso por dia vai de 0 a 24 horas. Pode me passar de novo?',
                 intent: 'calcular_consumo',
-                context: this.montarContexto({ device: entities.device }, 'calcular_consumo'),
+                context: this.montarContexto(
+                    { device: entities.device, device_id: entities.device_id, device_type_id: entities.device_type_id },
+                    'calcular_consumo'
+                ),
             };
         }
 
         const consumption = this.consumoCalculator.calcularConsumo(power, hours, days);
         const cost = this.consumoCalculator.calcularCusto(consumption, tariff);
-        const suggestions = this.economiaUseCase.sugerirEconomia(entities.device!, consumption, hours);
+
+        const suggestions = await this.economiaUseCase.sugerirEconomia({
+            nome,
+            tipoId: tipo?.id ?? null,
+            potenciaW: power,
+            horasDia: hours,
+            diasMes: days,
+            tarifa: tariff,
+            bandeira: tarifaVigente.bandeira,
+            potenciaMediaTipo: tipo?.potencia_media_watts,
+            horasTipicasTipo: tipo?.horas_uso_tipicas,
+            ficaEmStandby: tipo?.fica_em_standby,
+        });
 
         return {
-            message: `O ${entities.device} consome aproximadamente ${consumption} kWh por mês, ` +
+            message: `O ${nome} consome aproximadamente ${consumption} kWh por mês, ` +
                 `cerca de R$ ${cost.toFixed(2)} (${power} W, ${hours} h/dia, ${days} dias, tarifa R$ ${tariff.toFixed(2)}/kWh).`,
             intent: 'calcular_consumo',
             entities,
@@ -257,31 +343,51 @@ export class ChatbotUseCase {
             },
             suggestions,
             quick_replies: ['Como posso economizar com esse aparelho?', 'Calcular outro aparelho'],
-            // MANTÉM O APARELHO PARA "COMO ECONOMIZAR COM ESSE APARELHO?"
-            context: this.montarContexto({ device: entities.device }),
+            context: this.montarContexto({
+                device: entities.device,
+                device_id: entities.device_id,
+                device_type_id: entities.device_type_id,
+            }),
         };
     }
 
     // ---------------------------------------------------------------------
-    private responderEconomia(entities: EntidadesChat): ChatbotResposta {
+    private async responderEconomia(casaId: number, entities: EntidadesChat, catalogo: Catalogo): Promise<ChatbotResposta> {
         if (!entities.device) {
             return {
                 message: 'Qual aparelho você quer analisar?',
                 intent: 'buscar_economia',
                 context: this.montarContexto(entities, 'buscar_economia'),
-                quick_replies: ['Chuveiro', 'Ar-condicionado', 'Geladeira', 'Televisão'],
+                quick_replies: this.aparelhosSugeridos(catalogo),
             };
         }
 
-        const suggestions = this.economiaUseCase.sugerirEconomia(
-            entities.device, 0, Number(entities.hours_per_day ?? 0)
-        );
+        const tipo = this.tipoDoAparelho(entities, catalogo);
+        const nome = this.nomeDoAparelho(entities, catalogo);
+        const tarifa = await this.tarifaRepository.buscarTarifaVigente(casaId);
+
+        // SEM DADOS DO USUÁRIO, USA A MÉDIA DO TIPO PARA AS DICAS CALCULADAS
+        const suggestions = await this.economiaUseCase.sugerirEconomia({
+            nome,
+            tipoId: tipo?.id ?? null,
+            potenciaW: entities.power_watts ?? tipo?.potencia_media_watts ?? 0,
+            horasDia: entities.hours_per_day ?? tipo?.horas_uso_tipicas ?? 0,
+            tarifa: tarifa.valorTotalKwh,
+            bandeira: tarifa.bandeira,
+            potenciaMediaTipo: tipo?.potencia_media_watts,
+            horasTipicasTipo: tipo?.horas_uso_tipicas,
+            ficaEmStandby: tipo?.fica_em_standby,
+        });
 
         return {
-            message: `Aqui vão algumas dicas para economizar com o ${entities.device}:`,
+            message: `Aqui vão algumas dicas para economizar com o ${nome}:`,
             intent: 'buscar_economia',
             suggestions,
-            context: this.montarContexto({ device: entities.device }),
+            context: this.montarContexto({
+                device: entities.device,
+                device_id: entities.device_id,
+                device_type_id: entities.device_type_id,
+            }),
             quick_replies: ['Calcular o consumo desse aparelho', 'Ver meus dispositivos'],
         };
     }
@@ -303,11 +409,23 @@ export class ChatbotUseCase {
             .map((d) => `• ${d.nome} (${d.tipo}) · ${d.potencia_watts} W · ${d.ligado ? 'ligado' : 'desligado'}`)
             .join('\n');
 
+        // QUEM MAIS CONSOME (POTÊNCIA × HORAS × 30 DIAS)
+        const ranking = dispositivos
+            .map((d) => ({ nome: d.nome.toLowerCase(), kwh: (Number(d.potencia_watts) / 1000) * Number(d.horas_uso_dia) * 30 }))
+            .sort((a, b) => b.kwh - a.kwh);
+        const maior = ranking[0];
+
+        const destaque = maior && maior.kwh > 0
+            ? `\n\nO que mais consome é o ${maior.nome} (≈ ${maior.kwh.toFixed(1)} kWh/mês).`
+            : '';
+
         return {
             message: `Você tem ${dispositivos.length} dispositivo(s) cadastrado(s) e ${ligados.length} ligado(s) agora, ` +
-                `somando ${potenciaLigada.toLocaleString('pt-BR')} W.\n\n${lista}`,
+                `somando ${potenciaLigada.toLocaleString('pt-BR')} W.\n\n${lista}${destaque}`,
             intent: 'consultar_dispositivos',
-            quick_replies: ['Qual foi meu consumo este mês?', 'Dicas para economizar'],
+            quick_replies: maior && maior.kwh > 0
+                ? [`Dicas para economizar com o ${maior.nome}`, 'Qual foi meu consumo este mês?']
+                : ['Qual foi meu consumo este mês?', 'Dicas para economizar'],
         };
     }
 

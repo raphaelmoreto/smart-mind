@@ -1,108 +1,113 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { DICA_ECONOMIA_REPOSITORY } from '../../chatbot.constants.js';
+import type { IDicaEconomiaRepository } from '../../domain/interfaces/dica-economia.repository.interface.js';
+
+export interface DadosEconomia {
+    nome: string;                       // COMO O APARELHO APARECE NA FRASE ("chuveiro", "ar condicionado da sala")
+    tipoId?: number | null;
+    potenciaW?: number;
+    horasDia?: number;
+    diasMes?: number;
+    tarifa?: number;
+    bandeira?: string;
+    potenciaMediaTipo?: number | null;
+    horasTipicasTipo?: number | null;
+    ficaEmStandby?: boolean;
+}
+
+const MAXIMO_DICAS = 5;
+
+const reais = (valor: number) =>
+    valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const decimal = (valor: number, casas = 1) =>
+    valor.toLocaleString('pt-BR', { maximumFractionDigits: casas });
 
 @Injectable()
 export class EconomiaUseCase {
 
-    sugerirEconomia(dispositivo: string, consumo: number, horasPorDia: number): string[] {
-        const sugestoes: string[] = [];
+    constructor(
+        @Inject(DICA_ECONOMIA_REPOSITORY)
+        private readonly dicaRepository: IDicaEconomiaRepository
+    ) {}
 
-        const device = dispositivo
-            .toLowerCase()
-            .trim();
+    async sugerirEconomia(dados: DadosEconomia): Promise<string[]> {
+        const potencia = Number(dados.potenciaW ?? 0);
+        const horas = Number(dados.horasDia ?? 0);
+        const dias = Number(dados.diasMes ?? 30);
+        const consumoKwh = (potencia / 1000) * horas * dias;
 
-        switch (device) {
-            case 'ar-condicionado':
-                sugestoes.push(
-                    'Configure a temperatura entre 23°C e 25°C, conforme o conforto necessário.'
+        // 1) PERSONALIZADAS (COM OS NÚMEROS DO USUÁRIO) VÊM PRIMEIRO
+        const calculadas = this.dicasCalculadas(dados, potencia, horas, dias);
+
+        // 2) DEPOIS AS CADASTRADAS NO BANCO PARA ESSE TIPO (+ GERAIS)
+        const doBanco = await this.dicaRepository.buscarDicas(dados.tipoId ?? null, horas, consumoKwh);
+
+        // SEM REPETIR E NO MÁXIMO 5
+        const dicas = [...new Set([...calculadas, ...doBanco.map((dica) => dica.texto)])].slice(0, MAXIMO_DICAS);
+
+        return dicas.length
+            ? dicas
+            : ['Continue monitorando o consumo para identificar oportunidades de economia.'];
+    }
+
+    // DICAS GERADAS POR REGRAS: FUNCIONAM PARA QUALQUER APARELHO, MESMO SEM DICA NO BANCO
+    private dicasCalculadas(dados: DadosEconomia, potencia: number, horas: number, dias: number): string[] {
+        const dicas: string[] = [];
+        const tarifa = Number(dados.tarifa ?? 0);
+
+        // REGRA 1 – QUANTO ECONOMIZA USANDO MENOS TEMPO
+        // (1 h a menos se usa 2 h ou mais; senão, 25% a menos do tempo)
+        if (potencia > 0 && horas > 0 && tarifa > 0) {
+            const reducaoHoras = horas >= 2 ? 1 : horas * 0.25;
+            const kwhEconomizado = (potencia / 1000) * reducaoHoras * dias;
+
+            if (kwhEconomizado >= 0.5) {
+                const tempo = reducaoHoras >= 1
+                    ? '1 hora'
+                    : `${Math.max(1, Math.round(reducaoHoras * 60))} minutos`;
+
+                dicas.push(
+                    `Usando o ${dados.nome} ${tempo} a menos por dia, você economiza cerca de ` +
+                    `${decimal(kwhEconomizado)} kWh (${reais(kwhEconomizado * tarifa)}) por mês.`
                 );
-
-                sugestoes.push(
-                    'Mantenha portas e janelas fechadas durante o funcionamento.'
-                );
-
-                sugestoes.push(
-                    'Realize a limpeza periódica dos filtros.'
-                );
-
-                if (horasPorDia >= 8) {
-                    sugestoes.push(
-                        'Reduza o tempo de utilização do ar-condicionado, se possível.'
-                    );
-                }
-                break;
-
-            case 'chuveiro':
-                sugestoes.push(
-                    'Reduza o tempo dos banhos.'
-                );
-
-                sugestoes.push(
-                    'Utilize uma temperatura adequada ao clima.'
-                );
-                break;
-
-            case 'geladeira':
-                sugestoes.push(
-                    'Evite abrir a porta da geladeira frequentemente.'
-                );
-
-                sugestoes.push(
-                    'Verifique a vedação da porta.'
-                );
-
-                sugestoes.push(
-                    'Evite colocar alimentos quentes diretamente no interior.'
-                );
-                break;
-
-            case 'televisao':
-                sugestoes.push(
-                    'Desligue a televisão quando não estiver sendo utilizada.'
-                );
-
-                sugestoes.push(
-                    'Utilize o modo de economia de energia quando disponível.'
-                );
-                break;
-
-            case 'microondas':
-                sugestoes.push(
-                    'Evite deixar o aparelho ligado sem necessidade.'
-                );
-                break;
-
-            case 'ventilador':
-                sugestoes.push(
-                    'Desligue o ventilador quando não houver ninguém no ambiente.'
-                );
-                break;
-
-            case 'computador':
-                sugestoes.push(
-                    'Utilize o modo de economia de energia quando disponível.'
-                );
-
-                sugestoes.push(
-                    'Desligue o computador quando não estiver em uso.'
-                );
-                break;
-
-            case 'maquina de lavar':
-                sugestoes.push('Lave com a capacidade máxima de roupas recomendada pelo fabricante.');
-                sugestoes.push('Prefira ciclos com água fria sempre que possível.');
-                break;
-
-            case 'ferro de passar':
-                sugestoes.push('Acumule roupas e passe tudo de uma vez.');
-                sugestoes.push('Comece pelas peças que pedem temperatura mais baixa.');
-                break;
-
-            default:
-                sugestoes.push(
-                    'Continue monitorando o consumo para identificar oportunidades de economia.'
-                );
+            }
         }
 
-        return sugestoes;
+        // REGRA 2 – POTÊNCIA BEM ACIMA DA MÉDIA DO TIPO
+        const media = Number(dados.potenciaMediaTipo ?? 0);
+        if (media > 0 && potencia > media * 1.25) {
+            const percentual = Math.round((potencia / media - 1) * 100);
+            dicas.push(
+                `Seu ${dados.nome} tem potência ${percentual}% acima da média desse tipo de aparelho (${decimal(media, 0)} W). ` +
+                `Na próxima troca, prefira um modelo com selo Procel A.`
+            );
+        }
+
+        // REGRA 3 – USO BEM ACIMA DO TÍPICO
+        const horasTipicas = Number(dados.horasTipicasTipo ?? 0);
+        if (horasTipicas > 0 && horas > horasTipicas * 1.5) {
+            dicas.push(
+                `Você usa o ${dados.nome} cerca de ${decimal(horas)} h por dia, bem acima do uso típico (${decimal(horasTipicas)} h). ` +
+                `Um temporizador ou uma rotina de desligamento ajudam.`
+            );
+        }
+
+        // REGRA 4 – APARELHOS QUE GASTAM EM STANDBY
+        if (dados.ficaEmStandby) {
+            dicas.push(
+                `Quando não estiver usando, desligue o ${dados.nome} da tomada (ou use uma tomada inteligente) para cortar o consumo em standby.`
+            );
+        }
+
+        // REGRA 5 – BANDEIRA AMARELA/VERMELHA
+        const bandeira = dados.bandeira?.toUpperCase();
+        if (bandeira && bandeira !== 'VERDE') {
+            dicas.push(
+                `A bandeira tarifária está ${bandeira.toLowerCase()}, então cada kWh custa mais: priorize reduzir o uso dos aparelhos de maior potência.`
+            );
+        }
+
+        return dicas;
     }
 }
