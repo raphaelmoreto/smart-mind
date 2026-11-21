@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router';
-import EnergyLayout from './components/energy/EnergyLayout.jsx';
-import ProtectedRoute from './components/protected-route/ProtectedRoute.jsx';
+import EnergyLayout from './components/layout/EnergyLayout.jsx';
+import ProtectedRoute from './components/routing/ProtectedRoute.jsx';
 import DevicesPage from './pages/Dispositivos/DevicesPage.jsx';
 import RoomsPage from './pages/Ambientes/RoomsPage.jsx';
 import EnergyPage from './pages/Energia/EnergyPage.jsx';

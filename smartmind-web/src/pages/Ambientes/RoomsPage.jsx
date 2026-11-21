@@ -4,7 +4,7 @@ import {
   MetricCard,
   Modal,
   PageHeading,
-} from "../../components/energy/EnergyComponents.jsx";
+} from "../../components/ui/index.js";
 import {
   createAmbiente,
   deleteAmbiente,

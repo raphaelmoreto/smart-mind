@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
 import { EnergyThemeContext } from "../../contexts/EnergyTheme.js";
-import AppSidebar from "../energy/AppSidebar.jsx";
+import AppSidebar from "../layout/AppSidebar.jsx";
 import { navigationItems } from "../../config/navigation.js";
 import { useLocation } from "react-router";
 import "../../pages/Home/HomePage.css";
 import "./EnergyLayout.css";
-import "./EnergyShared.css";
+import "../../styles/EnergyShared.css";
 
 
 export default function EnergyLayout({ children }) {

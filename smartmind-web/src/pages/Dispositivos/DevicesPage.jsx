@@ -5,10 +5,10 @@ import {
   MetricCard,
   Modal,
   PageHeading,
-} from "../../components/energy/EnergyComponents.jsx";
+} from "../../components/ui/index.js";
 import { useCasaAtual } from "../../hooks/useCasaAtual.js";
-import { dispositivoService } from "../../services/dispositivo-service.js";
-import { reconhecerTipo } from "../../utils/dispositivoMapper.js";
+import { dispositivoService } from "../../services/dispositivoService.js";
+import { daApi, kwhMes, paraApi, reconhecerTipo } from "../../utils/dispositivoMapper.js";
 import "./DevicesPage.css";
 
 const TAMANHO_MAXIMO_FOTO = 1.5 * 1024 * 1024; // 1,5 MB
@@ -21,35 +21,6 @@ const emptyForm = {
   horasUsoDia: "4",
   ativo: false,
 };
-
-// API -> TELA
-function daApi(d) {
-  return {
-    id: d.id,
-    nome: d.nome,
-    tipo: d.tipo,
-    fk_tipoDispositivo: d.fk_tipoDispositivo,
-    potenciaW: Number(d.potencia_watts ?? 0),
-    horasUsoDia: Number(d.horas_uso_dia ?? 0),
-    ativo: Boolean(d.ligado),
-    foto: d.foto_url ?? "",
-  };
-}
-
-// TELA -> API
-function paraApi(form, casaId) {
-  return {
-    nome: form.nome.trim(),
-    fk_tipoDispositivo: Number(form.fk_tipoDispositivo),
-    fk_casa: casaId,
-    potencia_watts: Number(form.potenciaW),
-    horas_uso_dia: Number(form.horasUsoDia),
-    ligado: Boolean(form.ativo),
-    foto_url: form.foto?.trim() || undefined,
-  };
-}
-
-const kwhMes = (device) => (device.potenciaW * device.horasUsoDia * 30) / 1000;
 
 function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
   const [form, setForm] = useState(
@@ -135,14 +106,6 @@ function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
     <form onSubmit={submit}>
       <div className="energy-form-grid">
         <FormField label="Nome do dispositivo" htmlFor="device-name">
-          {tipoReconhecido && !manuais.fk_tipoDispositivo && (
-            <small className="energy-hint">
-              Reconhecido como <strong>{tipoReconhecido.tipo}</strong>. Potência
-              e horas foram preenchidas com a média desse tipo. Ajuste se souber
-              o valor exato.
-            </small>
-          )}
-
           <input
             className="energy-input"
             id="device-name"
@@ -152,6 +115,14 @@ function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
             placeholder="Ex.: Ar-condicionado do quarto"
             required
           />
+
+          {tipoReconhecido && !manuais.fk_tipoDispositivo && (
+            <small className="energy-hint">
+              Reconhecido como <strong>{tipoReconhecido.tipo}</strong>. Potência
+              e horas foram preenchidas com a média desse tipo. Ajuste se souber
+              o valor exato.
+            </small>
+          )}
         </FormField>
 
         <FormField label="Tipo" htmlFor="device-type">

@@ -115,8 +115,8 @@ CREATE TABLE "Dispositivo" (
     	REFERENCES "Tipo_Dispositivo" (id)
 );
 
-INSERT INTO "Dispositivo" (nome, dt_cadastro, dt_ultima_conexao, "fk_tipoDispositivo", fk_casa)
-				 VALUES ('AR CONDICIONADO DA SALA', CURRENT_TIMESTAMP, NULL, 4, 1);
+INSERT INTO "Dispositivo" (nome, potencia_watts, horas_uso_dia, dt_cadastro, dt_ultima_conexao, "fk_tipoDispositivo", fk_casa)
+				 VALUES ('AR CONDICIONADO DA SALA', 1200, 8, CURRENT_TIMESTAMP, NULL, 4, 1);
 
 CREATE TABLE "Consumo" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router";
 import { authService } from "../../services/authService.js";
-import { navigationItems } from "./navigation.js";
+import { navigationItems } from "../../config/navigation.js";
 import Logo from "../../assets/logo.png";
 
 export default function AppSidebar() {

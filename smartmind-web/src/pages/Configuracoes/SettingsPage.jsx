@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { FormField, Modal, PageHeading, Toggle } from "../../components/energy/EnergyComponents.jsx";
-import { useLocalStorageState } from "../../components/energy/useEnergyStorage.js";
-import { useEnergyTheme } from "../../components/energy/EnergyTheme.js";
+import { FormField, Modal, PageHeading, Toggle } from "../../components/ui/index.js";
+import { useLocalStorageState } from "../../hooks/useLocalStorageState.js";
+import { useEnergyTheme } from "../../contexts/EnergyTheme.js";
 import { useCasaAtual } from "../../hooks/useCasaAtual.js";
 import { authService } from "../../services/authService.js";
 import { casaService } from "../../services/casaService.js";

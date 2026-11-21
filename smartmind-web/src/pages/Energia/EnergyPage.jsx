@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   MetricCard,
   PageHeading,
-} from "../../components/energy/EnergyComponents.jsx";
+} from "../../components/ui/index.js";
 import { getDispositivos, getEnergia } from "../../services/energyApi.js";
 import "./EnergyPage.css";
 

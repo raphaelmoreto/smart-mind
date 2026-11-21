@@ -2,13 +2,13 @@
 
 # SWAGGER: http://localhost:8000/docs
 
-from app.ml.predictor import predict_consumption
-from app.nlu.processor import process_message
+from typing import List, Optional
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+
+from app.ml.predictor import predict_consumption
 from app.nlu.processor import load_model, process_message, train_model
-# (mantenha os outros imports)
 
 app = FastAPI(
     title = "SmartMind AI",
@@ -36,10 +36,6 @@ class Catalogo(BaseModel):
 class MessageRequest(BaseModel):
     message: str
     catalog: Optional[Catalogo] = None
-
-
-class MessageRequest(BaseModel):
-    message: str
 
 class PredictionRequest(BaseModel):
     consumo_mes: float

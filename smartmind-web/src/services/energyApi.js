@@ -4,7 +4,7 @@ import {
   mockConsumo,
   mockDispositivos,
   mockPerfil,
-} from "../data/energyMock.js";
+} from "../mocks/energyMock.js";
 
 const pause = () => Promise.resolve();
 const copy = (value) => structuredClone(value);
