@@ -12,6 +12,8 @@ import type { IDispositivoRepository } from '../../../dispositivos/domain/interf
 import { TARIFA_REPOSITORY, CONSUMO_REPOSITORY, CHAT_HISTORY_REPOSITORY } from '../../chatbot.constants.js';
 import { DISPOSITIVO_REPOSITORY } from '../../../dispositivos/dispositivos.constants.js';
 import { ChatbotContextDto, ChatbotInputDto } from '../../domain/dto/chatbot.dto.js';
+import { PreverConsumoUseCase } from '../../../energia/application/use-cases/prever-consumo.js';
+import { Response } from '../../../core/application/response/response.js';
 import type { DispositivoOutputDto, TipoDispositivoOutputDto } from '../../../dispositivos/domain/dto/dispositivo.dto.js';
 import type { ChatbotResposta } from '../../domain/dto/chatbot.dto.js';
 
@@ -67,6 +69,8 @@ export class ChatbotUseCase {
 
         @Inject(DISPOSITIVO_REPOSITORY)
         private readonly dispositivoRepository: IDispositivoRepository,
+
+        private readonly preverConsumoUseCase: PreverConsumoUseCase,
     ) {}
 
     // =====================================================================
@@ -463,43 +467,29 @@ export class ChatbotUseCase {
 
     // ---------------------------------------------------------------------
     private async responderPrevisao(casaId: number): Promise<ChatbotResposta> {
-        const historico = await this.consumoRepository.buscarHistoricoMensal(casaId, 3);
-
-        if (!historico.length) {
-            return {
-                message: 'Para prever sua fatura, preciso de pelo menos um mês de medições de consumo.',
-                intent: 'prever_fatura',
-            };
-        }
-
-        // MESMAS FEATURES DO DATASET (historico_consumo.csv): tendencia = consumo_mes - media_3_meses
-        const consumoMes = historico[historico.length - 1].total_kwh;
-        const media3 = historico.reduce((soma, h) => soma + h.total_kwh, 0) / historico.length;
-        const tendencia = consumoMes - media3;
-        const temperatura = (await this.consumoRepository.buscarTemperaturaMedia(casaId, 30)) ?? 25;
-        const tarifa = await this.tarifaRepository.buscarTarifaVigente(casaId);
-
         try {
-            const previsao = await this.pythonAiClient.predictConsumption({
-                consumo_mes: Number(consumoMes.toFixed(2)),
-                media_3_meses: Number(media3.toFixed(2)),
-                tendencia: Number(tendencia.toFixed(2)),
-                temperatura_media: Number(temperatura.toFixed(1)),
-                mes: new Date().getMonth() + 1,
-                bandeira: tarifa.bandeira,
-            });
+            const previsao = await this.preverConsumoUseCase.executar(casaId);
 
-            const kwh = Number(previsao.consumo_previsto);
-            const valor = kwh * tarifa.valorTotalKwh;
+            // SEM MESES FECHADOS SUFICIENTES (OU MEDIÇÕES ATRASADAS)
+            if (previsao instanceof Response) {
+                return {
+                    message: 'Para prever sua fatura, preciso de pelo menos um mês completo de medições de consumo, ' +
+                        'incluindo o mês passado. Assim que houver esses dados, eu consigo calcular.',
+                    intent: 'prever_fatura',
+                };
+            }
+
+            const nomeDoMes = new Date(`${previsao.periodo_referencia}T00:00:00`)
+                .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
             return {
-                message: `Pela minha análise, o consumo previsto para o próximo mês é de ${kwh.toFixed(2)} kWh, ` +
-                    `com fatura estimada em R$ ${valor.toFixed(2)} (bandeira ${tarifa.bandeira.toLowerCase()}).`,
+                message: `Pela minha análise, o consumo de ${nomeDoMes} deve fechar em ${previsao.consumo_previsto_kwh.toFixed(2)} kWh, ` +
+                    `com fatura estimada em R$ ${previsao.valor_estimado.toFixed(2)} (bandeira ${previsao.bandeira.toLowerCase()}).`,
                 intent: 'prever_fatura',
                 result: {
-                    consumption_kwh: kwh,
-                    monthly_cost: Number(valor.toFixed(2)),
-                    tariff: tarifa.valorTotalKwh,
+                    consumption_kwh: previsao.consumo_previsto_kwh,
+                    monthly_cost: previsao.valor_estimado,
+                    tariff: previsao.tarifa_kwh,
                 },
                 quick_replies: ['Dicas para economizar', 'Quais dispositivos tenho cadastrados?'],
             };

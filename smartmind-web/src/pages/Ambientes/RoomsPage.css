@@ -27,3 +27,14 @@
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
 }
+
+/* LINHA "2 LIGADO(S) · 1.260 W" DO CARD */
+.energy-room-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  color: var(--positive);
+  font-size: 11px;
+  font-weight: 600;
+}

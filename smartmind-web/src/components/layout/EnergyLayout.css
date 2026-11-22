@@ -1,4 +1,381 @@
+/* =====================================================================
+   LAYOUT DAS PÁGINAS LOGADAS: CASCA, MENU LATERAL E BARRA SUPERIOR
+   (saiu do HomePage.css: o layout não depende mais de nenhuma página)
+===================================================================== */
+
+/* ---------- CASCA ---------- */
+
+.sm-app {
+  --bg: var(--energy-bg);
+  --sidebar: var(--energy-sidebar);
+  --surface: var(--energy-surface);
+  --surface-raised: var(--energy-surface-raised);
+  --surface-soft: var(--energy-surface-soft);
+  --line: var(--energy-line);
+  --text: var(--energy-text);
+  --muted: var(--energy-muted);
+  --faint: var(--energy-faint);
+  --accent: var(--energy-accent);
+  --accent-ink: var(--energy-accent-ink);
+  --action: var(--energy-action);
+  --action-hover: var(--energy-action-hover);
+  --action-ink: var(--energy-action-ink);
+  --focus: var(--energy-focus);
+  --positive: var(--energy-positive);
+  --mint: var(--energy-mint);
+  --lav: var(--energy-lav);
+  --amber: var(--energy-amber);
+  --sky: var(--energy-sky);
+
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: clip;
+  color: var(--text);
+  background: var(--bg);
+  font-family: "Kedebideri", sans-serif;
+  font-size: 14px;
+  transition:
+    background 0.25s,
+    color 0.25s;
+}
+
+.sm-app button,
+.sm-app a {
+  color: inherit;
+}
+
+.sm-main {
+  min-width: 0;
+  width: calc(100% - var(--energy-sidebar-width));
+  margin-left: var(--energy-sidebar-width);
+}
+
+.sm-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 39px clamp(24px, 4vw, 64px) 22px;
+}
+
+/* ---------- MENU LATERAL ---------- */
+
+.sm-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: var(--energy-sidebar-width);
+  flex: 0 0 var(--energy-sidebar-width);
+  height: 100vh;
+  padding: 27px 17px 20px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+}
+
+.sm-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 52px;
+  padding: 0 9px;
+  text-decoration: none;
+}
+
+.sm-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 10px;
+  background: var(--action);
+  color: var(--action-ink);
+  font-size: 20px;
+}
+
+.sm-brand-name {
+  font:
+    700 17px Kedebideri,
+    sans-serif;
+  letter-spacing: -0.6px;
+}
+
+.sm-side-label {
+  margin-bottom: 12px;
+  padding: 0 12px;
+  color: var(--faint);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.35px;
+}
+
+.sm-side-nav {
+  display: grid;
+  gap: 5px;
+}
+
+.sm-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 43px;
+  padding: 0 12px;
+  border-radius: 9px;
+  color: var(--muted) !important;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.sm-nav-link:hover {
+  background: var(--surface-soft);
+  color: var(--text) !important;
+}
+
+.sm-nav-link.active {
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
 .sm-nav-link:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+.sm-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  font-size: 16px;
+  font-style: normal;
+}
+
+/* ---------- RODAPÉ DO MENU: CARTÃO DO USUÁRIO + SAIR ---------- */
+
+.sm-sidebar-bottom {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.sm-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  transition: border-color 0.2s;
+}
+
+.sm-profile-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.sm-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent), var(--action));
+  color: var(--action-ink);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.sm-profile-info {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sm-profile-info strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sm-profile-info span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+/* ".sm-app" NA FRENTE: GANHA DO ".sm-app button { color: inherit }" SEM PRECISAR DE !important */
+.sm-app .sm-logout-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.sm-logout-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.sm-app .sm-logout-button:hover {
+  border-color: color-mix(in srgb, var(--energy-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--energy-danger) 14%, transparent);
+  color: var(--energy-danger);
+}
+
+.sm-logout-button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- BARRA SUPERIOR ---------- */
+
+.sm-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 75px;
+  padding: 0 clamp(24px, 4vw, 64px);
+  border-bottom: 1px solid var(--line);
+}
+
+.sm-breadcrumb {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sm-breadcrumb span {
+  padding: 0 9px;
+  color: var(--faint);
+}
+
+.sm-breadcrumb strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.sm-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sm-theme-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 35px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.sm-theme-button .sm-icon {
+  color: var(--amber);
+}
+
+/* ---------- RESPONSIVO ---------- */
+
+@media (max-width: 1100px) {
+  .sm-content {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+/* MENU VIRA SÓ ÍCONES */
+@media (max-width: 760px) {
+  .sm-sidebar {
+    padding: 20px 8px;
+  }
+
+  .sm-brand {
+    justify-content: center;
+    margin-bottom: 42px;
+    padding: 0;
+  }
+
+  .sm-brand-name,
+  .sm-side-label,
+  .sm-nav-link > span:not(.sm-icon),
+  .sm-profile-info {
+    display: none;
+  }
+
+  .sm-nav-link {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sm-nav-link .sm-icon {
+    font-size: 18px;
+  }
+
+  .sm-profile-card {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .sm-topbar {
+    padding: 0 18px;
+  }
+
+  .sm-top-actions {
+    gap: 7px;
+  }
+
+  .sm-theme-button {
+    justify-content: center;
+    width: 35px;
+    padding: 0;
+  }
+
+  .sm-theme-button span:not(.sm-icon) {
+    display: none;
+  }
+
+  .sm-content {
+    padding: 29px 20px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sm-sidebar {
+    display: none;
+  }
+
+  .sm-topbar {
+    height: 61px;
+  }
+
+  .sm-content {
+    padding: 24px 15px;
+  }
 }

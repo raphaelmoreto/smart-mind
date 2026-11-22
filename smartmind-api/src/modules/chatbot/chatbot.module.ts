@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 
 import { DatabaseModule } from '../core/database/database.module.js';
 import { DispositivoModule } from '../dispositivos/dispositivos.module.js';
+import { EnergiaModule } from '../energia/energia.module.js';
 
 import { ChatbotController } from './presentation/controllers/chatbot.controller.js';
 import { ChatbotUseCase } from './application/use-cases/chatbot.js';
@@ -22,6 +23,7 @@ import { TARIFA_REPOSITORY, CONSUMO_REPOSITORY, CHAT_HISTORY_REPOSITORY, DICA_EC
         HttpModule.register({ timeout: 10000 }), // NÃO DEIXA A REQUISIÇÃO PENDURADA SE O PYTHON TRAVAR
         DatabaseModule,
         DispositivoModule,                        // EXPORTA DISPOSITIVO_REPOSITORY
+        EnergiaModule,                            // EXPORTA PreverConsumoUseCase
     ],
     controllers: [ChatbotController],
     providers: [

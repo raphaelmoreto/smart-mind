@@ -11,6 +11,8 @@ import { CasaModule } from './modules/casa/casa.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { DispositivoModule } from './modules/dispositivos/dispositivos.module.js';
 import { ChatbotModule } from './modules/chatbot/chatbot.module.js';
+import { AmbienteModule } from './modules/ambiente/ambiente.module.js';
+import { EnergiaModule } from './modules/energia/energia.module.js';
 
 /*
 • @Module({}) - É UM DECORATOR QUE TRANSFORMA UM MÓDULO RECONHECIDO PELO NESTJS; 
@@ -34,7 +36,9 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module.js';
         CasaModule,
         AuthModule,
         DispositivoModule,
-        ChatbotModule
+        ChatbotModule,
+        AmbienteModule,
+        EnergiaModule
     ],
     controllers: [],
     providers: [],

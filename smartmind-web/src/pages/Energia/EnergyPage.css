@@ -81,3 +81,68 @@
   color: var(--text);
   font-weight: 700;
 }
+
+/* =========================================================
+   NOVOS ELEMENTOS DA PÁGINA DE ENERGIA (DADOS DO BANCO)
+========================================================= */
+
+/* COLUNA DA DIREITA: PREVISÃO + SIMULADOR, UM EMBAIXO DO OUTRO */
+.energy-side-stack {
+  display: grid;
+  align-content: start;
+  gap: var(--energy-space-lg);
+}
+
+/* GRÁFICO ESMAECIDO ENQUANTO TROCA DE PERÍODO */
+.energy-chart.is-loading {
+  opacity: 0.45;
+  transition: opacity 0.2s;
+}
+
+.energy-chart-empty {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* CARTÃO DA PREVISÃO */
+.energy-forecast {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--energy-radius-sm);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.energy-forecast span,
+.energy-forecast small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.energy-forecast strong {
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.energy-forecast b {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.energy-forecast-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* NOME DO AMBIENTE EMBAIXO DO NOME DO DISPOSITIVO NA TABELA */
+.energy-table-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}

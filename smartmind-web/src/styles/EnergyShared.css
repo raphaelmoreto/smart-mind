@@ -55,28 +55,29 @@
   --energy-sky: #155b84;
 }
 
-.sm-app {
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: clip;
+
+/* =========================================================
+   CLASSES USADAS POR MAIS DE UMA PÁGINA
+========================================================= */
+
+/* BOLINHA VERDE "AO VIVO" (HOME, DISPOSITIVOS, AMBIENTES) */
+.sm-live-dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  background: var(--positive);
+  border-radius: 50%;
+  box-shadow: 0 0 9px color-mix(in srgb, var(--positive) 44%, transparent);
+}
+
+/* AVISO "RECONHECIDO COMO ..." NO CADASTRO DE DISPOSITIVO */
+.energy-hint {
   display: block;
-}
-
-.sm-sidebar {
-  width: var(--energy-sidebar-width);
-  flex-basis: var(--energy-sidebar-width);
-}
-
-.sm-main {
-  min-width: 0;
-  width: calc(100% - var(--energy-sidebar-width));
-  margin-left: var(--energy-sidebar-width);
-}
-
-.sm-content {
-  width: 100%;
-  max-width: none;
-  margin: 0;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--energy-muted);
 }
 
 .energy-page {

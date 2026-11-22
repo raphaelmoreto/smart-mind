@@ -1,88 +1,165 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  MetricCard,
-  PageHeading,
-} from "../../components/ui/index.js";
-import { getDispositivos, getEnergia } from "../../services/energyApi.js";
+import { Link } from "react-router";
+import { MetricCard, PageHeading } from "../../components/ui/index.js";
+import { useCasaAtual } from "../../hooks/useCasaAtual.js";
+import { dispositivoService } from "../../services/dispositivoService.js";
+import { energiaService } from "../../services/energiaService.js";
+import { daApi } from "../../utils/dispositivoMapper.js";
 import "./EnergyPage.css";
 
-const dailyShape = [0.52, 0.48, 0.46, 0.44, 0.48, 0.62, 0.8, 0.92, 0.84, 0.72, 0.75, 0.91, 0.86, 0.8, 0.79, 0.86, 1, 1.13, 1.3, 1.22, 1.08, 0.9, 0.72, 0.6];
-const weeklyShape = [0.92, 1, 1.04, 1.02, 1.08, 1.2, 1.12];
-const monthlyShape = [0.88, 0.92, 0.96, 1, 1.02, 1.08, 1.04, 0.98, 1.06, 1.1, 1.04, 0.92];
+const PERIODOS = [
+  { id: "dia", label: "24 h" },
+  { id: "semana", label: "7 dias" },
+  { id: "ano", label: "12 meses" },
+];
 
-function buildSeries(period, totalKwh, daysInMonth) {
-  let labels;
-  let weights;
-  let total;
-  if (period === "day") {
-    labels = Array.from({ length: 24 }, (_, index) => (index % 3 === 0 ? String(index).padStart(2, "0") + "h" : ""));
-    weights = dailyShape;
-    total = totalKwh / daysInMonth;
-  } else if (period === "week") {
-    labels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-    weights = weeklyShape;
-    total = totalKwh / daysInMonth * 7;
-  } else {
-    labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-    weights = monthlyShape;
-    total = totalKwh;
-  }
-  const weightTotal = weights.reduce((sum, value) => sum + value, 0);
-  return labels.map((label, index) => ({
-    label,
-    value: total * weights[index] / weightTotal,
-  }));
-}
+const money = (valor) => valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const kwh = (valor, casas = 1) => valor.toLocaleString("pt-BR", { maximumFractionDigits: casas }) + " kWh";
 
-const money = (amount, currency) =>
-  amount.toLocaleString("pt-BR", { style: "currency", currency });
+// "2026-11-01" -> "novembro de 2026"
+const nomeDoMes = (data) =>
+  new Date(`${data}T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
 export default function EnergyPage() {
+  const { casaAtual, carregando: carregandoCasa, erro: erroCasa } = useCasaAtual();
+  const casaId = casaAtual?.id;
+
+  // ---------- DADOS DO BANCO ----------
   const [devices, setDevices] = useState([]);
-  const [tariff, setTariff] = useState(0.92);
-  const [daysInMonth, setDaysInMonth] = useState(30);
-  const [currency, setCurrency] = useState("BRL");
-  const [period, setPeriod] = useState("week");
+  const [resumo, setResumo] = useState(null);
+  const [serie, setSerie] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [carregandoSerie, setCarregandoSerie] = useState(true);
+  const [erro, setErro] = useState("");
 
+  // ---------- SIMULAÇÃO (SÓ NA TELA, NÃO GRAVA NADA) ----------
+  const [periodo, setPeriodo] = useState("semana");
+  const [tarifaSimulada, setTarifaSimulada] = useState(null);
+  const [diasSimulados, setDiasSimulados] = useState(null);
+  const [horasSimuladas, setHorasSimuladas] = useState({});
+
+  // ---------- PREVISÃO COM IA ----------
+  const [prevendo, setPrevendo] = useState(false);
+  const [erroPrevisao, setErroPrevisao] = useState("");
+
+  // DISPOSITIVOS + RESUMO (CONSUMO DO MÊS, TARIFA, ÚLTIMA PREVISÃO)
   useEffect(() => {
-    Promise.all([getDispositivos(), getEnergia()]).then(([deviceData, energyData]) => {
-      setDevices(deviceData);
-      setTariff(energyData.tarifa);
-      setDaysInMonth(energyData.diasNoMes);
-      setCurrency(energyData.moeda || "BRL");
-    });
-  }, []);
+    if (carregandoCasa || !casaId) return;
+    let ignorar = false;
 
-  const consumption = useMemo(
+    Promise.all([dispositivoService.listarPorCasa(casaId), energiaService.buscarResumo(casaId)])
+      .then(([lista, dadosResumo]) => {
+        if (ignorar) return;
+        setDevices((lista ?? []).map(daApi));
+        setResumo(dadosResumo);
+        setErro("");
+      })
+      .catch((e) => {
+        if (!ignorar) setErro(e.message || "Não foi possível carregar os dados de energia.");
+      })
+      .finally(() => {
+        if (!ignorar) setLoading(false);
+      });
+
+    return () => {
+      ignorar = true;
+    };
+  }, [carregandoCasa, casaId]);
+
+  // GRÁFICO: RECARREGA QUANDO TROCA O PERÍODO
+  useEffect(() => {
+    if (carregandoCasa || !casaId) return;
+    let ignorar = false;
+
+    energiaService
+      .buscarSerie(casaId, periodo)
+      .then((pontos) => {
+        if (!ignorar) setSerie(pontos ?? []);
+      })
+      .catch((e) => {
+        if (!ignorar) setErro(e.message || "Não foi possível carregar o gráfico.");
+      })
+      .finally(() => {
+        if (!ignorar) setCarregandoSerie(false);
+      });
+
+    return () => {
+      ignorar = true;
+    };
+  }, [carregandoCasa, casaId, periodo]);
+
+  function trocarPeriodo(novo) {
+    if (novo === periodo) return;
+    setCarregandoSerie(true);
+    setPeriodo(novo);
+  }
+
+  async function gerarPrevisao() {
+    setPrevendo(true);
+    setErroPrevisao("");
+    try {
+      const previsao = await energiaService.prever(casaId);
+      setResumo((atual) => ({ ...atual, ultima_previsao: previsao }));
+    } catch (e) {
+      setErroPrevisao(e.message || "Não foi possível gerar a previsão.");
+    } finally {
+      setPrevendo(false);
+    }
+  }
+
+  // ---------- CÁLCULOS ----------
+  const tarifaDaCasa = resumo?.tarifa?.valor_total_kwh ?? 0;
+  const tarifa = tarifaSimulada ?? tarifaDaCasa;
+  const diasNoMes = diasSimulados ?? resumo?.dias_no_mes ?? 30;
+
+  const medidoPorDispositivo = useMemo(
+    () => new Map((resumo?.por_dispositivo ?? []).map((item) => [item.dispositivo_id, item.kwh])),
+    [resumo],
+  );
+
+  const consumo = useMemo(
     () =>
       devices.map((device) => {
-        const kwhMonth = Number(device.potenciaW) * Number(device.horasUsoDia) * daysInMonth / 1000;
+        const horas = horasSimuladas[device.id] ?? device.horasUsoDia;
+        const kwhMes = (device.potenciaW * horas * diasNoMes) / 1000;
         return {
           ...device,
-          kwhMonth,
-          costMonth: kwhMonth * tariff,
+          horas,
+          kwhMes,
+          custoMes: kwhMes * tarifa,
+          medidoMes: medidoPorDispositivo.get(device.id) ?? 0,
         };
       }),
-    [devices, daysInMonth, tariff],
+    [devices, horasSimuladas, diasNoMes, tarifa, medidoPorDispositivo],
   );
-  const totalKwh = consumption.reduce((sum, item) => sum + item.kwhMonth, 0);
-  const currentPower = devices
-    .filter((device) => device.ativo)
-    .reduce((sum, device) => sum + Number(device.potenciaW), 0);
-  const totalCost = totalKwh * tariff;
-  const series = useMemo(
-    () => buildSeries(period, totalKwh, daysInMonth),
-    [period, totalKwh, daysInMonth],
-  );
-  const maxValue = Math.max(...series.map((item) => item.value), 0.01);
 
-  function updateHours(deviceId, value) {
-    setDevices((current) =>
-      current.map((device) =>
-        device.id === deviceId
-          ? { ...device, horasUsoDia: Number(value) }
-          : device,
-      ),
+  const totalEstimado = consumo.reduce((soma, item) => soma + item.kwhMes, 0);
+  const totalMedido = consumo.reduce((soma, item) => soma + item.medidoMes, 0);
+  const potenciaAgora = devices.filter((d) => d.ativo).reduce((soma, d) => soma + d.potenciaW, 0);
+
+  const projecao = resumo?.projecao_mes_kwh ?? 0;
+  const mesAnterior = resumo?.consumo_mes_anterior_kwh ?? 0;
+  const variacao = mesAnterior > 0 ? ((projecao - mesAnterior) / mesAnterior) * 100 : null;
+
+  const maxSerie = Math.max(...serie.map((ponto) => ponto.kwh), 0.01);
+  const totalSerie = serie.reduce((soma, ponto) => soma + ponto.kwh, 0);
+  const semMedicoes = !carregandoSerie && serie.every((ponto) => ponto.kwh === 0);
+
+  const previsao = resumo?.ultima_previsao;
+
+  if (!carregandoCasa && !casaAtual) {
+    return (
+      <main className="energy-page">
+        <PageHeading eyebrow="EFICIÊNCIA DA CASA" title="Energia" description="Entenda o consumo da casa." />
+        <div className="energy-empty">
+          {/* SE A API ESTIVER FORA, MOSTRA O ERRO EM VEZ DE DIZER QUE NÃO HÁ CASA */}
+          {erroCasa || (
+            <>
+              Você ainda não tem uma casa cadastrada. <Link to="/configuracoes">Cadastre em Configurações</Link>.
+            </>
+          )}
+        </div>
+      </main>
     );
   }
 
@@ -91,133 +168,242 @@ export default function EnergyPage() {
       <PageHeading
         eyebrow="EFICIÊNCIA DA CASA"
         title="Energia"
-        description="Entenda o consumo da casa e simule seus custos mensais."
+        description="Consumo medido pela casa, previsão com IA e simulação de custos."
       />
 
+      {erro && <div className="energy-form-error" role="alert">{erro}</div>}
+
+      {/* ---------- CARDS ---------- */}
       <section className="energy-metrics" aria-label="Resumo de energia">
-        <MetricCard label="Consumo estimado" value={totalKwh.toFixed(1).replace(".", ",") + " kWh"} note="Projeção mensal da casa" icon="ϟ" />
-        <MetricCard label="Potência ligada agora" value={currentPower.toLocaleString("pt-BR") + " W"} note="Soma dos dispositivos ligados" icon="◉" />
-        <MetricCard label="Custo estimado" value={money(totalCost, currency)} note={"Tarifa de " + money(tariff, currency) + " por kWh"} icon="R$" />
+        <MetricCard
+          label="Consumo medido no mês"
+          value={loading ? "…" : kwh(resumo?.consumo_mes_atual_kwh ?? 0)}
+          note={`Projeção até o fim do mês: ${kwh(projecao)}`}
+          icon="ϟ"
+        />
+        <MetricCard
+          label="Custo projetado"
+          value={loading ? "…" : money(projecao * tarifaDaCasa)}
+          note={
+            variacao === null
+              ? `Tarifa de ${money(tarifaDaCasa)}/kWh`
+              : `${variacao >= 0 ? "↗" : "↘"} ${Math.abs(variacao).toFixed(0)}% em relação ao mês passado`
+          }
+          icon="R$"
+        />
+        <MetricCard
+          label="Potência ligada agora"
+          value={potenciaAgora.toLocaleString("pt-BR") + " W"}
+          note="Soma dos dispositivos ligados"
+          icon="◉"
+        />
       </section>
 
       <section className="energy-chart-layout">
+        {/* ---------- GRÁFICO COM AS MEDIÇÕES REAIS ---------- */}
         <article className="energy-panel">
           <div className="energy-panel-heading energy-chart-heading">
             <div>
-              <h2>Consumo ao longo do tempo</h2>
-              <p>Estimativa calculada com base nos dispositivos e horas de uso.</p>
+              <h2>Consumo medido</h2>
+              <p>Soma das medições da tabela de consumo de todos os aparelhos da casa.</p>
             </div>
             <div className="energy-segmented" role="tablist" aria-label="Período do gráfico">
-              {[
-                { id: "day", label: "Dia" },
-                { id: "week", label: "Semana" },
-                { id: "month", label: "Mês" },
-              ].map((item) => (
+              {PERIODOS.map((item) => (
                 <button
                   key={item.id}
-                  className={period === item.id ? "selected" : ""}
+                  className={periodo === item.id ? "selected" : ""}
                   type="button"
                   role="tab"
-                  aria-selected={period === item.id}
-                  onClick={() => setPeriod(item.id)}
+                  aria-selected={periodo === item.id}
+                  onClick={() => trocarPeriodo(item.id)}
                 >
                   {item.label}
                 </button>
               ))}
             </div>
           </div>
-          <div className="energy-chart" aria-label={"Estimativa de consumo por " + period}>
-            {series.map((item, index) => (
-              <div className="energy-chart-item" key={index} title={item.value.toFixed(2) + " kWh"}>
+
+          <div className={"energy-chart" + (carregandoSerie ? " is-loading" : "")} aria-label={"Consumo por " + periodo}>
+            {serie.map((ponto, index) => (
+              <div className="energy-chart-item" key={index} title={`${ponto.rotulo}: ${kwh(ponto.kwh, 2)}`}>
                 <div className="energy-chart-track">
-                  <div
-                    className="energy-chart-bar"
-                    style={{ height: Math.max(3, item.value / maxValue * 100) + "%" }}
-                  />
+                  <div className="energy-chart-bar" style={{ height: Math.max(3, (ponto.kwh / maxSerie) * 100) + "%" }} />
                 </div>
-                <span className="energy-chart-label">{item.label}</span>
+                {/* NO GRÁFICO DE 24 h, MOSTRA SÓ 1 RÓTULO A CADA 3 PARA NÃO EMBOLAR */}
+                <span className="energy-chart-label">
+                  {periodo !== "dia" || index % 3 === 0 ? ponto.rotulo : ""}
+                </span>
               </div>
             ))}
           </div>
+
+          {semMedicoes && <p className="energy-chart-empty">Ainda não há medições neste período.</p>}
+
           <div className="energy-chart-legend">
-            <span><i /> Consumo estimado</span>
-            <strong>{totalKwh.toFixed(1).replace(".", ",")} kWh/mês</strong>
+            <span>
+              <i /> Consumo medido
+            </span>
+            <strong>{kwh(totalSerie, 2)} no período</strong>
           </div>
         </article>
 
-        <article className="energy-panel energy-calculator">
-          <div className="energy-panel-heading">
-            <div>
-              <h2>Simulador de tarifa</h2>
-              <p>Altere os valores para atualizar os cálculos.</p>
+        <div className="energy-side-stack">
+          {/* ---------- PREVISÃO COM IA (GRAVA EM "Previsoes") ---------- */}
+          <article className="energy-panel energy-calculator">
+            <div className="energy-panel-heading">
+              <div>
+                <h2>Previsão com IA</h2>
+                <p>Usa os últimos meses completos de consumo.</p>
+              </div>
+              <span className="energy-metric-icon">✧</span>
             </div>
-            <span className="energy-metric-icon">⌘</span>
-          </div>
-          <label className="energy-field">
-            Tarifa (R$/kWh)
-            <input className="energy-input" type="number" min="0" step="0.01" value={tariff} onChange={(event) => setTariff(Math.max(0, Number(event.target.value)))} />
-          </label>
-          <label className="energy-field">
-            Dias no mês
-            <input className="energy-input" type="number" min="1" max="31" value={daysInMonth} onChange={(event) => setDaysInMonth(Math.min(31, Math.max(1, Number(event.target.value))))} />
-          </label>
-          <div className="energy-formula">
-            <span>Fórmula mensal por aparelho</span>
-            <strong>(W × horas/dia × dias) ÷ 1.000</strong>
-            <small>O custo é o consumo em kWh multiplicado pela tarifa.</small>
-          </div>
-        </article>
+
+            {previsao ? (
+              <div className="energy-forecast">
+                <span>Fechamento previsto de {nomeDoMes(previsao.periodo_referencia)}</span>
+                <strong>{kwh(previsao.consumo_previsto_kwh)}</strong>
+                <b>{money(previsao.valor_estimado)}</b>
+                <small>
+                  Modelo {previsao.modelo || "—"} · gerada em{" "}
+                  {new Date(previsao.dt_previsao).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                </small>
+              </div>
+            ) : (
+              <p className="energy-forecast-empty">Nenhuma previsão gerada ainda.</p>
+            )}
+
+            {erroPrevisao && <p className="energy-form-error" role="alert">{erroPrevisao}</p>}
+
+            <button className="energy-button" type="button" onClick={gerarPrevisao} disabled={prevendo || loading}>
+              {prevendo ? "Calculando..." : previsao ? "Gerar nova previsão" : "Gerar previsão"}
+            </button>
+          </article>
+
+          {/* ---------- SIMULADOR (NÃO GRAVA NADA) ---------- */}
+          <article className="energy-panel energy-calculator">
+            <div className="energy-panel-heading">
+              <div>
+                <h2>Simulador de tarifa</h2>
+                <p>Mude os valores para simular; nada é gravado.</p>
+              </div>
+              <span className="energy-metric-icon">⌘</span>
+            </div>
+            <label className="energy-field">
+              Tarifa (R$/kWh)
+              <input
+                className="energy-input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={Number(tarifa.toFixed(5))}
+                onChange={(event) => setTarifaSimulada(Math.max(0, Number(event.target.value)))}
+              />
+            </label>
+            <label className="energy-field">
+              Dias no mês
+              <input
+                className="energy-input"
+                type="number"
+                min="1"
+                max="31"
+                value={diasNoMes}
+                onChange={(event) => setDiasSimulados(Math.min(31, Math.max(1, Number(event.target.value))))}
+              />
+            </label>
+            {(tarifaSimulada !== null || diasSimulados !== null || Object.keys(horasSimuladas).length > 0) && (
+              <button
+                className="energy-button-secondary"
+                type="button"
+                onClick={() => {
+                  setTarifaSimulada(null);
+                  setDiasSimulados(null);
+                  setHorasSimuladas({});
+                }}
+              >
+                Voltar aos valores da casa
+              </button>
+            )}
+            <div className="energy-formula">
+              <span>Fórmula mensal por aparelho</span>
+              <strong>(W × horas/dia × dias) ÷ 1.000</strong>
+              <small>
+                Tarifa da casa: {money(tarifaDaCasa)}/kWh · bandeira {resumo?.tarifa?.bandeira?.toLowerCase() ?? "—"}
+              </small>
+            </div>
+          </article>
+        </div>
       </section>
 
+      {/* ---------- TABELA: ESTIMADO × MEDIDO ---------- */}
       <section className="energy-panel">
         <div className="energy-panel-heading">
           <div>
             <h2>Consumo por dispositivo</h2>
-            <p>Ajuste as horas diárias para simular seu consumo e custo.</p>
+            <p>Estimativa pela potência e horas de uso, comparada com o que foi medido neste mês.</p>
           </div>
         </div>
-        <div className="energy-table-wrap">
-          <table className="energy-table">
-            <thead>
-              <tr>
-                <th>Dispositivo</th>
-                <th>Potência</th>
-                <th>Horas/dia</th>
-                <th>Consumo/mês</th>
-                <th>Custo/mês</th>
-              </tr>
-            </thead>
-            <tbody>
-              {consumption.map((device) => (
-                <tr key={device.id}>
-                  <td>{device.nome}</td>
-                  <td>{device.potenciaW} W</td>
-                  <td>
-                    <input
-                      className="energy-input"
-                      type="number"
-                      min="0"
-                      max="24"
-                      step="0.5"
-                      aria-label={"Horas por dia de " + device.nome}
-                      value={device.horasUsoDia}
-                      onChange={(event) => updateHours(device.id, Math.min(24, Math.max(0, Number(event.target.value))))}
-                    />
-                  </td>
-                  <td>{device.kwhMonth.toFixed(2).replace(".", ",")} kWh</td>
-                  <td>{money(device.costMonth, currency)}</td>
+
+        {loading ? (
+          <div className="energy-empty">Carregando…</div>
+        ) : consumo.length === 0 ? (
+          <div className="energy-empty">
+            Nenhum dispositivo cadastrado. <Link to="/dispositivos">Adicione o primeiro</Link>.
+          </div>
+        ) : (
+          <div className="energy-table-wrap">
+            <table className="energy-table">
+              <thead>
+                <tr>
+                  <th>Dispositivo</th>
+                  <th>Potência</th>
+                  <th>Horas/dia</th>
+                  <th>Estimado/mês</th>
+                  <th>Medido no mês</th>
+                  <th>Custo estimado</th>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <th colSpan="3">Total estimado</th>
-                <th>{totalKwh.toFixed(2).replace(".", ",")} kWh</th>
-                <th>{money(totalCost, currency)}</th>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {consumo.map((device) => (
+                  <tr key={device.id}>
+                    <td>
+                      {device.nome}
+                      {device.ambiente && <small className="energy-table-sub">{device.ambiente}</small>}
+                    </td>
+                    <td>{device.potenciaW.toLocaleString("pt-BR")} W</td>
+                    <td>
+                      <input
+                        className="energy-input"
+                        type="number"
+                        min="0"
+                        max="24"
+                        step="0.5"
+                        aria-label={"Horas por dia de " + device.nome}
+                        value={device.horas}
+                        onChange={(event) =>
+                          setHorasSimuladas((atual) => ({
+                            ...atual,
+                            [device.id]: Math.min(24, Math.max(0, Number(event.target.value))),
+                          }))
+                        }
+                      />
+                    </td>
+                    <td>{kwh(device.kwhMes, 2)}</td>
+                    <td>{kwh(device.medidoMes, 2)}</td>
+                    <td>{money(device.custoMes)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colSpan="3">Total</th>
+                  <th>{kwh(totalEstimado, 2)}</th>
+                  <th>{kwh(totalMedido, 2)}</th>
+                  <th>{money(totalEstimado * tarifa)}</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </section>
     </main>
   );

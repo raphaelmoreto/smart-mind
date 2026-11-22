@@ -59,15 +59,18 @@ export default function HomePage() {
   const maiorConsumo = Math.max(0, ...devices.map((device) => kwhMes(device)));
 
   // ---------- FILTRO POR TIPO (VEM DOS PRÓPRIOS DISPOSITIVOS) ----------
+  // FILTRO POR AMBIENTE (OS QUE TÊM DISPOSITIVO) + "SEM AMBIENTE" QUANDO HOUVER
   const filtros = useMemo(() => {
-    const tipos = [...new Set(devices.map((device) => device.tipo).filter(Boolean))].sort();
+    const ambientes = [...new Set(devices.map((device) => device.ambiente ?? "Sem ambiente"))].sort();
     return [
       { nome: "Todos", icone: "⌂" },
-      ...tipos.map((tipo, index) => ({ nome: tipo, icone: ICONES_FILTRO[index % ICONES_FILTRO.length] })),
+      ...ambientes.map((nome, index) => ({ nome, icone: ICONES_FILTRO[index % ICONES_FILTRO.length] })),
     ];
   }, [devices]);
 
-  const visibleDevices = devices.filter((device) => filtro === "Todos" || device.tipo === filtro);
+  const visibleDevices = devices.filter(
+    (device) => filtro === "Todos" || (device.ambiente ?? "Sem ambiente") === filtro,
+  );
 
   // ---------- LIGAR / DESLIGAR (OTIMISTA) ----------
   async function toggleDevice(device) {
@@ -174,18 +177,18 @@ export default function HomePage() {
             </article>
           </section>
 
-          {/* ---------- FILTRO POR TIPO ---------- */}
-          <section className="sm-room-section" id="tipos">
+          {/* ---------- FILTRO POR AMBIENTE ---------- */}
+          <section className="sm-room-section" id="ambientes">
             <div className="sm-section-heading">
               <div>
-                <h2>Tipos de aparelho</h2>
-                <p>Escolha um tipo para filtrar seus dispositivos</p>
+                <h2>Ambientes</h2>
+                <p>Escolha um ambiente para ver seus dispositivos</p>
               </div>
-              <Link className="sm-text-button" to="/dispositivos">
+              <Link className="sm-text-button" to="/ambientes">
                 Gerenciar <span>→</span>
               </Link>
             </div>
-            <div className="sm-room-pills" role="tablist" aria-label="Filtrar por tipo">
+            <div className="sm-room-pills" role="tablist" aria-label="Filtrar por ambiente">
               {filtros.map(({ nome, icone }) => (
                 <button
                   key={nome}
@@ -246,7 +249,7 @@ export default function HomePage() {
                         >
                           <i />
                         </button>
-                        <span className="sm-device-room-tag">{device.tipo}</span>
+                        <span className="sm-device-room-tag">{device.ambiente ?? device.tipo}</span>
                       </div>
 
                       <div className="sm-device-info">

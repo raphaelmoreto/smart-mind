@@ -25,6 +25,13 @@ export class CriarDispositivoUseCase {
             return Response.erro(TipoRetorno.NotFound, 'casa não encontrada ou inativa');
         }
 
+        if (dto.fk_ambiente) {
+            const ambienteValido = await this.dispositivoRepository.verificarSeAmbienteDaCasa(dto.fk_ambiente, dto.fk_casa);
+            if (!ambienteValido) {
+                return Response.erro(TipoRetorno.NotFound, 'ambiente não encontrado nesta casa');
+            }
+        }
+
         const dispositivo = DispositivoEntity.instanciarDispositivo(
             dto.nome,
             dto.fk_tipoDispositivo,
@@ -32,7 +39,8 @@ export class CriarDispositivoUseCase {
             dto.potencia_watts,
             dto.horas_uso_dia,
             dto.ligado ?? false,
-            dto.foto_url
+            dto.foto_url,
+            dto.fk_ambiente
         );
 
         if (!dispositivo.isValid) {

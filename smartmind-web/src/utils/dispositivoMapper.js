@@ -20,6 +20,8 @@ export function daApi(d) {
     nome: d.nome,
     tipo: d.tipo,
     fk_tipoDispositivo: d.fk_tipoDispositivo,
+    fk_ambiente: d.fk_ambiente ?? null,
+    ambiente: d.ambiente ?? null,
     potenciaW: Number(d.potencia_watts ?? 0),
     horasUsoDia: Number(d.horas_uso_dia ?? 0),
     ativo: Boolean(d.ligado),
@@ -34,6 +36,7 @@ export function paraApi(form, casaId) {
     nome: form.nome.trim(),
     fk_tipoDispositivo: Number(form.fk_tipoDispositivo),
     fk_casa: casaId,
+    fk_ambiente: form.fk_ambiente ? Number(form.fk_ambiente) : null, // "" = SEM AMBIENTE
     potencia_watts: Number(form.potenciaW),
     horas_uso_dia: Number(form.horasUsoDia),
     ligado: Boolean(form.ativo),

@@ -1,277 +1,6 @@
-.sm-app {
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-  --bg: var(--energy-bg);
-  --sidebar: var(--energy-sidebar);
-  --surface: var(--energy-surface);
-  --surface-raised: var(--energy-surface-raised);
-  --surface-soft: var(--energy-surface-soft);
-  --line: var(--energy-line);
-  --text: var(--energy-text);
-  --muted: var(--energy-muted);
-  --faint: var(--energy-faint);
-  --accent: var(--energy-accent);
-  --accent-ink: var(--energy-accent-ink);
-  --action: var(--energy-action);
-  --action-hover: var(--energy-action-hover);
-  --action-ink: var(--energy-action-ink);
-  --focus: var(--energy-focus);
-  --positive: var(--energy-positive);
-  --mint: var(--energy-mint);
-  --lav: var(--energy-lav);
-  --amber: var(--energy-amber);
-  --sky: var(--energy-sky);
-  min-height: 100vh;
-  color: var(--text);
-  background: var(--bg);
-  font-family: "Kedebideri", sans-serif;
-  display: block;
-  transition:
-    background 0.25s,
-    color 0.25s;
-  font-size: 14px;
-}
-
-.sm-app button,
-.sm-app a {
-  color: inherit;
-}
-
-.sm-sidebar {
-  width: var(--energy-sidebar-width);
-  flex: 0 0 var(--energy-sidebar-width);
-  min-height: 100vh;
-  background: var(--sidebar);
-  border-right: 1px solid var(--line);
-  padding: 27px 17px 20px;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  height: 100vh;
-  z-index: 20;
-}
-
-.sm-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  padding: 0 9px;
-  margin-bottom: 52px;
-}
-
-.sm-brand-mark {
-  width: 29px;
-  height: 29px;
-  border-radius: 10px;
-  background: var(--action);
-  color: var(--action-ink);
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-}
-
-.sm-brand-name {
-  font:
-    700 17px Kedebideri,
-    sans-serif;
-  letter-spacing: -0.6px;
-}
-
-.sm-side-label {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 1.35px;
-  color: var(--faint);
-  padding: 0 12px;
-  margin-bottom: 12px;
-}
-
-.sm-side-nav {
-  display: grid;
-  gap: 5px;
-}
-
-.sm-nav-link {
-  height: 43px;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  color: var(--muted) !important;
-  font-size: 12px;
-  border-radius: 9px;
-}
-
-.sm-nav-link:hover {
-  background: var(--surface-soft);
-  color: var(--text) !important;
-}
-
-.sm-nav-link.active {
-  background: color-mix(in srgb, var(--accent) 13%, transparent);
-  color: var(--accent) !important;
-  font-weight: 600;
-}
-
-.sm-icon {
-  display: inline-grid;
-  place-items: center;
-  width: 17px;
-  font-size: 16px;
-  font-style: normal;
-}
-.sm-sidebar-bottom {
-  margin-top: auto;
-}
-.sm-profile {
-  border-top: 1px solid var(--line);
-  margin-top: 10px;
-  padding: 17px 4px 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.sm-avatar,
-.sm-mini-avatar {
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #d7bd9f, #906c54);
-  color: white;
-  font-weight: 700;
-}
-
-.sm-avatar {
-  width: 33px;
-  height: 33px;
-  font-size: 12px;
-}
-
-.sm-profile div:nth-child(2) {
-  display: grid;
-  gap: 3px;
-}
-
-.sm-profile strong {
-  font-size: 11px;
-}
-
-.sm-profile div:nth-child(2) span {
-  font-size: 10px;
-  color: var(--muted);
-}
-.sm-main {
-  min-width: 0;
-  width: calc(100% - var(--energy-sidebar-width));
-  margin-left: var(--energy-sidebar-width);
-}
-
-.sm-topbar {
-  height: 75px;
-  border-bottom: 1px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 clamp(24px, 4vw, 64px);
-}
-
-.sm-breadcrumb {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.sm-breadcrumb span {
-  padding: 0 9px;
-  color: var(--faint);
-}
-
-.sm-breadcrumb strong {
-  color: var(--text);
-  font-weight: 500;
-}
-
-.sm-top-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.sm-search {
-  height: 35px;
-  width: 225px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 9px;
-  color: var(--muted);
-}
-
-.sm-search input {
-  min-width: 0;
-  flex: 1;
-  background: transparent;
-  border: 0;
-  outline: none;
-  color: var(--text);
-  font-size: 10px;
-}
-
-.sm-search input::placeholder {
-  color: var(--faint);
-}
-
-.sm-search kbd {
-  font:
-    9px "Kedebideri",
-    sans-serif;
-  color: var(--faint);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 2px 4px;
-}
-
-.sm-theme-button {
-  height: 35px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  border-radius: 8px;
-  color: var(--muted);
-  position: relative;
-}
-.sm-theme-button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 10px;
-  font-size: 10px;
-}
-
-.sm-theme-button .sm-icon {
-  color: var(--amber);
-}
-
-.sm-mini-avatar {
-  width: 30px;
-  height: 30px;
-  font-size: 11px;
-}
-
-.sm-content {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 39px clamp(24px, 4vw, 64px) 22px;
-}
+/* =====================================================================
+   HOME: SÓ OS ESTILOS DA PÁGINA (O MENU E A BARRA SUPERIOR ESTÃO EM components/layout/EnergyLayout.css)
+===================================================================== */
 
 .sm-welcome-row {
   display: flex;
@@ -288,16 +17,6 @@
   letter-spacing: 1.3px;
   color: var(--muted);
   font-weight: 700;
-}
-
-.sm-live-dot {
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  background: var(--positive);
-  border-radius: 50%;
-  box-shadow: 0 0 9px color-mix(in srgb, var(--positive) 44%, transparent);
 }
 
 .sm-welcome-date {
@@ -869,12 +588,9 @@
   gap: 7px;
 }
 
-@media (max-width: 1100px) {
-  .sm-content {
-    padding-left: 28px;
-    padding-right: 28px;
-  }
+/* ---------- RESPONSIVO (SÓ O QUE É DA HOME; O DO LAYOUT ESTÁ NO EnergyLayout.css) ---------- */
 
+@media (max-width: 1100px) {
   .sm-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -882,78 +598,9 @@
   .sm-summary-card {
     min-height: 145px;
   }
-
-  .sm-search {
-    width: 190px;
-  }
 }
 
 @media (max-width: 760px) {
-  .sm-sidebar {
-    padding: 20px 8px;
-  }
-
-  .sm-brand {
-    padding: 0;
-    justify-content: center;
-    margin-bottom: 42px;
-  }
-
-  .sm-brand-name,
-  .sm-side-label,
-  .sm-nav-link > span:not(.sm-icon),
-.sm-nav-link {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sm-nav-link .sm-icon {
-    font-size: 18px;
-  }
-
-  .sm-profile {
-    justify-content: center;
-    padding: 15px 0 0;
-  }
-.sm-topbar {
-    padding: 0 18px;
-  }
-
-  .sm-search {
-    width: 35px;
-    padding: 0;
-    justify-content: center;
-    border-color: transparent;
-    background: transparent;
-  }
-
-  .sm-search input,
-  .sm-search kbd {
-    display: none;
-  }
-
-  .sm-search .sm-icon {
-    font-size: 20px;
-  }
-
-  .sm-top-actions {
-    gap: 7px;
-  }
-
-  .sm-theme-button {
-    width: 35px;
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sm-theme-button span {
-    display: none;
-  }
-
-  .sm-content {
-    padding: 29px 20px 20px;
-  }
-
   .sm-welcome-row {
     align-items: flex-start;
     gap: 12px;
@@ -962,7 +609,8 @@
   .sm-welcome-row h1 {
     font-size: 30px;
   }
-.sm-device-grid {
+
+  .sm-device-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -972,22 +620,6 @@
 }
 
 @media (max-width: 480px) {
-.sm-sidebar {
-    display: none;
-  }
-
-  .sm-topbar {
-    height: 61px;
-  }
-
-  .sm-mini-avatar {
-    display: none;
-  }
-
-  .sm-content {
-    padding: 24px 15px;
-  }
-
   .sm-summary-grid {
     gap: 8px;
   }

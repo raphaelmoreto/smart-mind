@@ -91,6 +91,28 @@ INSERT INTO "Tipo_Dispositivo" (tipo, sinonimos, potencia_media_watts, horas_uso
 							   ('SECADOR DE CABELO', ARRAY['secador','secador de cabelo'], 1200, 0.2, FALSE),
 							   ('VIDEOGAME', ARRAY['videogame','playstation','xbox','console'], 150, 3, TRUE);
 
+CREATE TABLE "Ambiente" (
+    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao VARCHAR(255) NULL,
+    dt_cadastro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    dt_exclusao TIMESTAMP NULL,
+    fk_casa INTEGER NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT fk_ambiente_casa
+        FOREIGN KEY (fk_casa)
+        REFERENCES "Casa" (id)
+);
+
+CREATE INDEX idx_ambiente_casa ON "Ambiente" (fk_casa);
+
+INSERT INTO "Ambiente" (nome, descricao, fk_casa)
+				VALUES ('SALA DE ESTAR',    'Conforto e entretenimento', 1),
+				       ('COZINHA',          'Preparo das refeições',     1),
+				       ('QUARTO PRINCIPAL', 'Descanso e leitura',        1),
+				       ('ESCRITÓRIO',       'Trabalho e estudos',        1);
+
 
 CREATE TABLE "Dispositivo" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -104,6 +126,7 @@ CREATE TABLE "Dispositivo" (
 	dt_ultima_conexao TIMESTAMP NULL,
 	"fk_tipoDispositivo" INTEGER NOT NULL,
 	fk_casa INTEGER NOT NULL,
+	fk_ambiente INTEGER NULL,
 	ativo BOOLEAN NOT NULL DEFAULT TRUE,
 
 	CONSTRAINT fk_dispositivo_casa
@@ -112,11 +135,17 @@ CREATE TABLE "Dispositivo" (
 		
 	CONSTRAINT fk_dispositivo_tipo
     	FOREIGN KEY ("fk_tipoDispositivo")
-    	REFERENCES "Tipo_Dispositivo" (id)
+    	REFERENCES "Tipo_Dispositivo" (id),
+
+	CONSTRAINT fk_dispositivo_ambiente
+	    FOREIGN KEY (fk_ambiente)
+	    REFERENCES "Ambiente" (id)
 );
 
-INSERT INTO "Dispositivo" (nome, potencia_watts, horas_uso_dia, dt_cadastro, dt_ultima_conexao, "fk_tipoDispositivo", fk_casa)
-				 VALUES ('AR CONDICIONADO DA SALA', 1200, 8, CURRENT_TIMESTAMP, NULL, 4, 1);
+CREATE INDEX idx_dispositivo_ambiente ON "Dispositivo" (fk_ambiente);
+
+INSERT INTO "Dispositivo" (nome, potencia_watts, horas_uso_dia, dt_cadastro, dt_ultima_conexao, "fk_tipoDispositivo", fk_casa, fk_ambiente)
+				 VALUES ('AR CONDICIONADO DA SALA', 1200, 8, CURRENT_TIMESTAMP, NULL, 4, 1, 1);
 
 CREATE TABLE "Consumo" (
 	id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -129,8 +158,20 @@ CREATE TABLE "Consumo" (
 		REFERENCES "Dispositivo" (id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_consumo_dispositivo_data ON "Consumo" (fk_dispositivo, dt_medicao);
+
 INSERT INTO "Consumo" (consumo, dt_medicao, fk_dispositivo)
-			 VALUES (125.50, '2026-09-05 12:00:00', 1);
+SELECT ROUND(((d.potencia_watts / 1000.0) * (d.horas_uso_dia / 24.0) * (0.6 + random() * 0.8))::numeric, 3),
+       h,
+       d.id
+FROM "Dispositivo" d
+CROSS JOIN generate_series(
+    date_trunc('hour', LOCALTIMESTAMP) - INTERVAL '120 days',
+    date_trunc('hour', LOCALTIMESTAMP),
+    INTERVAL '1 hour'
+) AS h
+WHERE d.ativo = TRUE
+  AND d.potencia_watts > 0;
 
 CREATE TABLE "Temperatura" (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -144,7 +185,12 @@ CREATE TABLE "Temperatura" (
 );
 
 INSERT INTO "Temperatura" (temperatura, dt_medicao, fk_casa)
-			 VALUES (125.50, '2026-09-05 12:00:00', 1);
+SELECT ROUND((22 + random() * 9)::numeric, 2), dia, 1
+FROM generate_series(
+    CURRENT_DATE - INTERVAL '120 days',
+    CURRENT_DATE,
+    INTERVAL '1 day'
+) AS dia;
 
 CREATE TABLE "Previsoes" (
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -159,6 +205,8 @@ CREATE TABLE "Previsoes" (
         FOREIGN KEY (fk_casa)
         REFERENCES "Casa" (id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_previsoes_casa_data ON "Previsoes" (fk_casa, dt_previsao DESC);
 
 INSERT INTO "Previsoes" (valor_previsto, periodo_referencia, dt_previsao, modelo, erro_estimado, fk_casa)
 			 VALUES (150.50, '2026-10-01', '2026-09-05 12:00:00', 'Regresso Linear', 5.25, 1);

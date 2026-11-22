@@ -8,6 +8,7 @@ import {
 } from "../../components/ui/index.js";
 import { useCasaAtual } from "../../hooks/useCasaAtual.js";
 import { dispositivoService } from "../../services/dispositivoService.js";
+import { ambienteService } from "../../services/ambienteService.js";
 import { daApi, kwhMes, paraApi, reconhecerTipo } from "../../utils/dispositivoMapper.js";
 import "./DevicesPage.css";
 
@@ -17,17 +18,19 @@ const emptyForm = {
   nome: "",
   foto: "",
   fk_tipoDispositivo: "",
+  fk_ambiente: "",
   potenciaW: "",
   horasUsoDia: "4",
   ativo: false,
 };
 
-function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
+function DeviceForm({ device, tipos, ambientes, salvando, erroApi, onCancel, onSubmit }) {
   const [form, setForm] = useState(
     device
       ? {
           ...device,
           fk_tipoDispositivo: String(device.fk_tipoDispositivo),
+          fk_ambiente: device.fk_ambiente ? String(device.fk_ambiente) : "",
           potenciaW: String(device.potenciaW),
           horasUsoDia: String(device.horasUsoDia),
         }
@@ -143,6 +146,23 @@ function DeviceForm({ device, tipos, salvando, erroApi, onCancel, onSubmit }) {
           </select>
         </FormField>
 
+        <FormField label="Ambiente" htmlFor="device-room">
+          <select
+            className="energy-select"
+            id="device-room"
+            name="fk_ambiente"
+            value={form.fk_ambiente}
+            onChange={updateField}
+          >
+            <option value="">Sem ambiente</option>
+            {ambientes.map((ambiente) => (
+              <option key={ambiente.id} value={ambiente.id}>
+                {ambiente.nome}
+              </option>
+            ))}
+          </select>
+        </FormField>
+
         <FormField label="Potência (W)" htmlFor="device-power">
           <input
             className="energy-input"
@@ -235,6 +255,7 @@ export default function DevicesPage() {
 
   const [devices, setDevices] = useState([]);
   const [tipos, setTipos] = useState([]);
+  const [ambientes, setAmbientes] = useState([]);
   const [modalDevice, setModalDevice] = useState(null);
   const [deviceToDelete, setDeviceToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -249,13 +270,15 @@ export default function DevicesPage() {
 
     async function buscar() {
       try {
-        const [lista, listaTipos] = await Promise.all([
+        const [lista, listaTipos, listaAmbientes] = await Promise.all([
           dispositivoService.listarPorCasa(casaId),
           dispositivoService.buscarTipos(),
+          ambienteService.listarPorCasa(casaId),
         ]);
         if (ignorar) return;
         setDevices((lista ?? []).map(daApi));
         setTipos(listaTipos ?? []);
+        setAmbientes(listaAmbientes ?? []);
         setError("");
       } catch (e) {
         if (!ignorar)
@@ -458,7 +481,7 @@ export default function DevicesPage() {
                 <div className="energy-device-title">
                   <div>
                     <h3>{device.nome}</h3>
-                    <p>{device.tipo}</p>
+                    <p>{device.ambiente ? `${device.tipo} · ${device.ambiente}` : device.tipo}</p>
                   </div>
                   <strong className="energy-device-power">
                     {device.potenciaW} W
@@ -525,6 +548,7 @@ export default function DevicesPage() {
           <DeviceForm
             device={modalDevice.id ? modalDevice : null}
             tipos={tipos}
+            ambientes={ambientes}
             salvando={salvando}
             erroApi={error}
             onCancel={() => setModalDevice(null)}

@@ -32,6 +32,12 @@ export class DispositivoInputDto {
     @IsBoolean()
     ligado?: boolean;
 
+    @ApiPropertyOptional({ nullable: true, description: 'Ambiente (cômodo). null = sem ambiente' })
+    @IsOptional()
+    @IsInt()
+    @IsPositive()
+    fk_ambiente?: number | null;
+
     @ApiPropertyOptional({ description: 'URL ou data URL (base64) da foto' })
     @IsOptional()
     @IsString()
@@ -52,6 +58,8 @@ export class DispositivoOutputDto {
     @ApiProperty() tipo: string;
     @ApiProperty() fk_casa: number;
     @ApiProperty() casa: string;
+    @ApiProperty({ nullable: true }) fk_ambiente: number | null;
+    @ApiProperty({ nullable: true }) ambiente: string | null;
     @ApiProperty() potencia_watts: number;
     @ApiProperty() horas_uso_dia: number;
     @ApiProperty() ligado: boolean;

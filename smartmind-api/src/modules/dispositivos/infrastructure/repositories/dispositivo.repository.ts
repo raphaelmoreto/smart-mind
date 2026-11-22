@@ -19,6 +19,7 @@ export class DispositivoRepository implements IDispositivoRepository {
             .createQueryBuilder('d')
             .innerJoin('Tipo_Dispositivo', 'td', 'd.fk_tipoDispositivo = td.id')
             .innerJoin('Casa', 'c', 'd.fk_casa = c.id')
+            .leftJoin('Ambiente', 'a', 'd.fk_ambiente = a.id')
             .select([
                 'd.id AS id',
                 'd.nome AS nome',
@@ -26,6 +27,8 @@ export class DispositivoRepository implements IDispositivoRepository {
                 'td.tipo AS tipo',
                 'd.fk_casa AS fk_casa',
                 'c.nome AS casa',
+                'd.fk_ambiente AS fk_ambiente',
+                'a.nome AS ambiente',
                 'CAST(d.potencia_watts AS FLOAT) AS potencia_watts',
                 'CAST(d.horas_uso_dia AS FLOAT) AS horas_uso_dia',
                 'd.ligado AS ligado',
@@ -97,7 +100,7 @@ export class DispositivoRepository implements IDispositivoRepository {
             .createQueryBuilder('d')
             .select([
                 'd.id', 'd.nome', 'd.fk_tipoDispositivo', 'd.fk_casa',
-                'd.potencia_watts', 'd.horas_uso_dia', 'd.ligado', 'd.foto_url'
+                'd.potencia_watts', 'd.horas_uso_dia', 'd.ligado', 'd.foto_url', 'd.fk_ambiente'
             ])
             .where('d.id = :id AND d.ativo = TRUE', { id })
             .getOne();
@@ -116,7 +119,8 @@ export class DispositivoRepository implements IDispositivoRepository {
                 potencia_watts: entity.getPotenciaWatts(),
                 horas_uso_dia: entity.getHorasUsoDia(),
                 ligado: entity.getLigado(),
-                foto_url: entity.getFotoUrl()
+                foto_url: entity.getFotoUrl(),
+                fk_ambiente: entity.getFK_Ambiente()
             })
             .orIgnore()
             .execute();
@@ -134,12 +138,23 @@ export class DispositivoRepository implements IDispositivoRepository {
                 potencia_watts: entity.getPotenciaWatts(),
                 horas_uso_dia: entity.getHorasUsoDia(),
                 ligado: entity.getLigado(),
-                foto_url: entity.getFotoUrl()
+                foto_url: entity.getFotoUrl(),
+                fk_ambiente: entity.getFK_Ambiente()
             })
             .where('id = :id', { id: entity.getId() })
             .execute();
         return result.affected === 1;
     }
+
+    // O AMBIENTE PRECISA SER DA MESMA CASA DO DISPOSITIVO
+    async verificarSeAmbienteDaCasa(ambienteId: number, casaId: number): Promise<boolean> {
+        const result = await this.repository.query(
+            `SELECT 1 FROM "Ambiente" WHERE id = $1 AND fk_casa = $2 AND ativo = TRUE`,
+            [ambienteId, casaId]
+        );
+        return result.length > 0;
+    }
+
 
     async verificarSeDispositivoExiste(id: number): Promise<boolean> {
         const result = await this.repository

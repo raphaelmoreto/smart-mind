@@ -29,6 +29,9 @@ export class DispositivoEntity extends BaseEntity {
     @Column({ type: 'text', nullable: true })
     private foto_url: string | null;
 
+    @Column({ type: 'int', nullable: true })
+    private fk_ambiente: number | null;
+
     constructor() {
         super();
     }
@@ -40,7 +43,8 @@ export class DispositivoEntity extends BaseEntity {
         potencia_watts: number,
         horas_uso_dia: number,
         ligado: boolean = false,
-        foto_url?: string | null
+        foto_url?: string | null,
+        fk_ambiente?: number | null
     ): DispositivoEntity {
         const dispositivo = new DispositivoEntity();
         dispositivo.setNome(nome);
@@ -50,6 +54,7 @@ export class DispositivoEntity extends BaseEntity {
         dispositivo.setHorasUsoDia(horas_uso_dia);
         dispositivo.setLigado(ligado);
         dispositivo.setFotoUrl(foto_url);
+        dispositivo.setFK_Ambiente(fk_ambiente);
         return dispositivo;
     }
 
@@ -95,6 +100,19 @@ export class DispositivoEntity extends BaseEntity {
         this.horas_uso_dia = valor;
     }
 
+    // AMBIENTE É OPCIONAL: null/undefined = "SEM AMBIENTE"
+    public setFK_Ambiente(id?: number | null): void {
+        if (id === null || id === undefined) {
+            this.fk_ambiente = null;
+            return;
+        }
+        if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
+            this.addNotification('fk_ambiente', 'ambiente do dispositivo inválido');
+            return;
+        }
+        this.fk_ambiente = Number(id);
+    }
+
     public setLigado(ligado: boolean): void {
         this.ligado = Boolean(ligado);
     }
@@ -107,6 +125,7 @@ export class DispositivoEntity extends BaseEntity {
     public getNome(): string { return this.nome; }
     public getFK_TipoDispositivo(): number { return this.fk_tipoDispositivo; }
     public getFK_Casa(): number { return this.fk_casa; }
+    public getFK_Ambiente(): number | null { return this.fk_ambiente; }
     public getPotenciaWatts(): number { return this.potencia_watts; }
     public getHorasUsoDia(): number { return this.horas_uso_dia; }
     public getLigado(): boolean { return this.ligado; }

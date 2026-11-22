@@ -19,4 +19,5 @@ export interface IDispositivoRepository
     verificarSeDispositivoExiste(id: number): Promise<boolean>;
     verificarSeCasaExiste(id: number): Promise<boolean>;
     verificarSeTipoDispositivoExiste(id: number): Promise<boolean>;
+    verificarSeAmbienteDaCasa(ambienteId: number, casaId: number): Promise<boolean>;
 }
