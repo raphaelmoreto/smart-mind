@@ -1,3 +1,4 @@
+
 --CREATE DATABASE smart_mind;
 
 CREATE TABLE "Perfil_Usuario" (
